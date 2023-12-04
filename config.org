@@ -1,7 +1,8 @@
-#+TITLE: NOIRMACS
-#+AUTHOR: Narmer Noir Bazile
-#+EMAIL: narmernbazile@gmail.com
+#+TITLE:    NOIRMACS
+#+AUTHOR:   Narmer Noir Bazile
+#+EMAIL:    narmernbazile@gmail.com
 #+LANGUAGE: en
+#+STARTUP:  overview
 
 * whoami
 #+BEGIN_SRC emacs-lisp
@@ -25,43 +26,38 @@
     (add-hook 'prog-mode-hook 'display-line-numbers-mode)
     (column-number-mode 1)
 
-    (setq whitespace-style '(face tabs tab-mark trailing))
-    (custom-set-faces
-      '(whitespace-tab ((t (:foreground "#636363")))))
-    (setq whitespace-display-mappings
-      '((tab-mark 9 [124 9] [92 9]))) ; 124 is the ascii ID for '\|'
 #+END_SRC
 
 * behavior
 #+BEGIN_SRC emacs-lisp
-  ;; Keep emacs Custom-settings in separate file.
-  (if (not (file-exists-p (expand-file-name "custom.el" user-emacs-directory)))
-    (with-temp-file (expand-file-name "custom.el" user-emacs-directory)))
-  (setq-default custom-file (expand-file-name "custom.el" user-emacs-directory))
-  (load custom-file)
+   ;; Keep emacs Custom-settings in separate file.
+   (if (not (file-exists-p (expand-file-name "custom.el" user-emacs-directory)))
+     (with-temp-file (expand-file-name "custom.el" user-emacs-directory)))
+   (setq-default custom-file (expand-file-name "custom.el" user-emacs-directory))
+   (load custom-file)
 
-  (setq visible-bell nil)              ;; disable terminal bell
-  (delete-selection-mode 1)            ;; replace active region by typing
-  (defalias 'yes-or-no-p 'y-or-n-p)    ;; skip typing out yes or no
-  (setq make-backup-files nil)         ;; don't create backup files
+   (setq visible-bell nil)              ;; disable terminal bell
+   (delete-selection-mode 1)            ;; replace active region by typing
+   (defalias 'yes-or-no-p 'y-or-n-p)    ;; skip typing out yes or no
+   (setq make-backup-files nil)         ;; don't create backup files
 
-  (setq locale-coding-system   'utf-8) ;; set UTF-8 encoding as default
-  (set-terminal-coding-system  'utf-8)
-  (set-keyboard-coding-system  'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system        'utf-8)
+   (setq locale-coding-system   'utf-8) ;; set UTF-8 encoding as default
+   (set-terminal-coding-system  'utf-8)
+   (set-keyboard-coding-system  'utf-8)
+   (set-selection-coding-system 'utf-8)
+   (prefer-coding-system        'utf-8)
 
-  ;; auto-close brackets, parenthesis, and double quotes
-  (setq electric-pair-pairs '((?\( . ?\))
-                              (?\[ . ?\[)
-                              (?\{ . ?\})
-                              (?\" . ?\")))
-  (electric-pair-mode t)
+   ;; auto-close brackets, parenthesis, and double quotes
+   (setq electric-pair-pairs '((?\( . ?\))
+			       (?\[ . ?\])
+			       (?\{ . ?\})
+			       (?\" . ?\")))
+   (electric-pair-mode t)
 
-  ;; word wrap
-  (setq-default fill-column 80)     ;; wrap lines at standard 80 characters
-  (setq-default truncate-lines nil) ;; nil for wrap, t for no wrap
-  (global-visual-line-mode 1)
+   ;; word wrap
+   (setq-default fill-column 80)     ;; wrap lines at standard 80 characters
+   (setq-default truncate-lines nil) ;; nil for wrap, t for no wrap
+   (global-visual-line-mode 1)
 
   ;; whitespace
   ;; (setq-default 'sentence-end-double-space nil) ;; period + space = sentence
@@ -70,21 +66,79 @@
   ;; (defvaralias 'c-basic-offset 'tab-width)
   ;; (defvaralias 'cperl-indent-level 'tab-width)
 
-  ;; whitespace
-  (setq custom-tab-width 2)
+   ;; whitespace
+   ;; (setq custom-tab-width 2)
 
-  (defun disable-tabs () (setq indent-tabs-mode nil))
-  (defun enable-tabs  ()
-    (local-set-key (kbd "TAB") 'tab-to-tab-stop)
-    (setq indent-tabs-mode t)
-    (setq tab-width custom-tab-width))
+   ;; (defun disable-tabs () (setq indent-tabs-mode nil))
+   ;; (defun enable-tabs  ()
+   ;;   (local-set-key (kbd "TAB") 'tab-to-tab-stop)
+   ;;   (setq indent-tabs-mode t)
+   ;;   (setq tab-width custom-tab-width))
 
-  (add-hook 'prog-mode-hook 'disable-tabs)
-  (setq-default eletric-indent-inhibit t)
-  (setq backward-delete-char-untabify-method 'hungry)
-  (global-whitespace-mode) ; Enable whitespace mode everywhere
+   ;; (add-hook 'prog-mode-hook 'disable-tabs)
+   ;; (setq-default eletric-indent-inhibit t)
+   ;; (setq backward-delete-char-untabify-method 'hungry)
+   ;; (global-whitespace-mode) ; Enable whitespace mode everywhere
 
 #+END_SRC
+
+* helper functions
+#+begin_src emacs-lisp
+;  (defun noir/find-user-config-file ()
+;    (interactive)
+;    (find-file user-config-file))
+;
+;  (defun noir/find-user-init-file ()
+;    (interactive)
+;    (find-file user-init-file))
+
+;  (defun noir/sync-user-configuration ()
+;    "Reevaluates the contents of your init.el file"
+;    (interactive)
+;    (load user-init-file))
+
+  ;; found at http://emacswiki.org/emacs/KillingBuffers
+;  (defun noir/kill-other-buffers (&optional arg)
+;    "Kill all other buffers. If the universal prefix argument is used then will the windows too."
+;    (interactive "P")
+;    (when (yes-or-no-p (format "Killing all buffers except \"%s\"? " (buffer-name)))
+;      (mapc 'kill-buffer (delq (current-buffer) (buffer-list)))
+;      (when (equal '(4) arg) (delete-other-windows))
+;      (message "Buffers deleted!")))
+
+;  (defun noir/sync-user-configuration ()
+;    "Reevaluates the contents of your init.el file"
+;     (interactive)
+;     (load user-init-file))
+
+;  (defun toggle-window-split ()
+;    (interactive)
+;    (if (= (count-windows) 2)
+;    (let* ((this-win-buffer (window-buffer))
+;      (next-win-buffer (window-buffer (next-window)))
+;      (this-win-edges (window-edges (selected-window)))
+;      (next-win-edges (window-edges (next-window)))
+;      (this-win-2nd (not (and (<= (car this-win-edges)
+;			 (car next-win-edges))
+;			 (<= (cadr this-win-edges)
+;			 (cadr next-win-edges)))))
+;      (splitter
+;      (if (= (car this-win-edges)
+;	     (car (window-edges (next-window))))
+;	       'split-window-horizontally
+;	       'split-window-vertically)))
+;     (delete-other-windows)
+;      (let ((first-win (selected-window)))
+;	(funcall splitter)
+;	(if this-win-2nd (other-window 1))
+;	(set-window-buffer (selected-window) this-win-buffer)
+;	(set-window-buffer (next-window) next-win-buffer)
+;	(select-window first-win)
+;	(if this-win-2nd (other-window 1))))))))
+
+; (global-set-key (kbd "C-x |") 'toggle-window-split)
+
+#+end_src
 
 * packages
 #+begin_src emacs-lisp
@@ -104,7 +158,6 @@
   (require 'use-package)
 
 #+end_src
-
 
 * evil
 #+begin_src emacs-lisp
@@ -145,7 +198,7 @@
 
 (use-package diminish
   :ensure t
-  :init 
+  :init
   (diminish 'which-key-mode)
   ;; required because flyspell is loaded with a hook rather than at startup
   (with-eval-after-load "flyspell" (diminish 'flyspell-mode))
@@ -158,46 +211,161 @@
 
 * completion
 #+begin_src emacs-lisp
-(use-package vertico
-  :ensure t
-  :init (vertico-mode))
+  (use-package vertico
+    :ensure t
+    :custom
+    (vertico-count 13)                    ; Number of candidates to display
+    (vertico-resize t)
+    (vertico-cycle t) ; Go from last to first candidate and first to last (cycle)?
+    :config
+    ;; (keymap-set vertico-map "TAB" #'minibuffer-complete)
+    (vertico-mode))
+
+  (use-package vertico-directory
+    :after vertico
+    :ensure nil
+    :config
+    (defun vertico-directory-delete-word ()
+    "Delete directory or word before point."
+    (interactive)
+    ;; If I could go up a directory then it means I was completing
+    ;; a directory. In that context we actually delete a word (the
+    ;; last part of the file path). However, if we're not completing
+    ;; a path, then instead of deleting a word, I delete just a char
+    ;; That's totally hackish.
+    (unless (vertico-directory-up)
+      call-interactively #'backward-delete-char)
+    (call-interactively #'virtico-directory-delete-world))
+
+    ;; More convenient directory navigation commands
+    :bind (:map vertico-map
+    ;; ("TAB"   . vertico-insert)
+    ("RET"   . vertico-directory-enter)
+    ;; ("M-DEL" . vertico-directory-delete-char)
+    ("DEL"   . vertico-directory-delete-char)))
+
+  (use-package marginalia
+    :ensure t
+    ;; :general
+    ;; (:keymaps 'minibuffer-local-map
+    ;; "M-A" 'marginalia-cycle)
+    :custom
+    (marginalia-max-relative-age 0)
+    (marginalia-align 'right)
+    :init
+    (marginalia-mode))
+
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless))      ; Use orderless
+    (completion-category-defaults nil)    ; I want to be in control!
+    (completion-category-overrides
+    '((file (styles basic-remote ; For `tramp' hostname completion with `vertico'
+                     orderless)))))
+
+#+end_src
+
+#+RESULTS:
+
+* autocompletion
+#+begin_src emacs-lisp
+  (use-package company
+    :ensure t
+    :config
+    (add-hook 'prog-mode-hook 'global-company-mode))
+#+end_src
+
+* general.el | which-key
+#+begin_src emacs-lisp
+  
+  (use-package general
+    :ensure t
+    :config
+    (general-evil-setup t)
+
+    ;;   (general-create-definer noir/leader-keys
+    ;;     :keymaps '(normal insert visual emacs)
+    ;;     :prefix "SPC"
+    ;;     :global-prefix "C-SPC"))
+
+    ;; (noir/leader-keys
+    ;;   "t"  '(:ignore t :which-key "toggles")
+    ;;   "tt" '(counsel-load-theme :which-key "choose theme"))
+
+    ;; Set up leader key with general.el
+    (general-create-definer noir/leader    :prefix "SPC")
+
+    (noir/leader
+    :keymaps 'normal
+    "TAB" '(mode-line-other-buffer   :which-key "last-buffer")
+    "SPC" '(execute-extended-command :which-key "M-x:")
+    "."   '(find-file                :which-key "find-file")
+
+    "o"  '(:ignore t :which-key "open")
+    "oe" '(eshell    :which-key "eshell")
+
+    "q"  '(:ignore t              :which-key "quit")
+    "qR" '(restart-emacs          :which-key "restart-emacs")
+
+    "p"  '(projectile-command-map :which-key "projectile")))
+
+    ;; Example: Adding projectile-compile-project to leader key
+    ;; (my-leader-def
+    ;; :keymaps 'normal
+    ;; "pc" '(projectile-compile-project :which-key "Compile Project"))
+
+    ;; ;; Example: Adding projectile-run-shell-command to leader key
+    ;; (my-leader-def
+    ;; :keymaps 'normal
+    ;; "ps" '(projectile-run-shell-command :which-key "Run Shell Command in Project")))
+
+  (use-package which-key    :ensure t :config (which-key-mode))
+
+#+end_src
+
+* projectile
+#+begin_src emacs-lisp
+  (use-package projectile :ensure t)
+  (use-package treemacs-projectile :after (treemacs projectire) :ensure t)
 #+end_src
 
 * treemacs
 #+begin_src emacs-lisp
-  (use-package treemacs
-    :ensure t
-    :defer t
-    :config
-    (setq   treemacs-follow-after-init          t
-	    treemacs-width                      35
-	    treemacs-indentation                2
-	    treemacs-space-between-root-nodes   nil
-	    treemacs-read-string-input          'from-child-frame
-	    treemacs-show-hidden-files          t
-	    treemacs-never-persist              nil
-	    treemacs-goto-tag-strategy          'refetch-index))
+    (use-package treemacs
+      :ensure t
+      :defer t
+      :config
+      (setq   treemacs-follow-after-init          t
+	      treemacs-width                      35
+	      treemacs-indentation                2
+	      treemacs-space-between-root-nodes   nil
+	      treemacs-read-string-input          'from-child-frame
+	      treemacs-show-hidden-files          t
+	      treemacs-never-persist              nil
+	      treemacs-goto-tag-strategy          'refetch-index))
 
-(use-package treemacs-all-the-icons
-  :ensure t
-  :config
-  (treemacs-load-theme "all-the-icons"))
+  (use-package treemacs-all-the-icons
+    :ensure t
+    :config
+    (treemacs-load-theme "all-the-icons"))
+
 #+end_src
 
 * lsp | dap mode
 #+begin_src emacs-lisp
   (use-package lsp-mode
     :hook ((c-mode          ; clangd
-	    c++-mode        ; clangd
-	    c-or-c++-mode   ; clangd
-	    java-mode       ; eclipse-jdtls
-	    js-mode         ; ts-ls (tsserver wrapper)
-	    js-jsx-mode     ; ts-ls (tsserver wrapper)
-	    typescript-mode ; ts-ls (tsserver wrapper)
-	    python-mode     ; pyright
-	    web-mode        ; ts-ls/HTML/CSS
-	    haskell-mode    ; haskell-language-server
-	    ) . lsp-deferred)
+            c++-mode        ; clangd
+            c-or-c++-mode   ; clangd
+            java-mode       ; eclipse-jdtls
+            js-mode         ; ts-ls (tsserver wrapper)
+            js-jsx-mode     ; ts-ls (tsserver wrapper)
+            typescript-mode ; ts-ls (tsserver wrapper)
+            python-mode     ; pyright
+            web-mode        ; ts-ls/HTML/CSS
+            haskell-mode    ; haskell-language-server
+            ) . lsp-deferred)
     :commands lsp
     :config
     (setq lsp-auto-guess-root t)
@@ -236,7 +404,6 @@
       :config (setq lsp-treemacs-theme nil)
       :commands lsp-treemacs-errors-list)
   ;; (use-package dap-mode     :ensure t)
-  ;; (use-package which-key    :ensure t :config (which-key-mode))
 #+end_src
 
 * c/c++
@@ -258,3 +425,70 @@
 #+begin_src emacs-lisp
   (setq lisp-indent-offset 2)
 #+end_src
+
+* org
+#+begin_src emacs-lisp
+  ;;(use-package org-modern
+  ;;    :ensure t
+  ;;:config
+  ;;(with-eval-after-load 'org (global-org-modern-mode)))
+
+  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-hook 'org-mode-hook 'flyspell-mode)
+  (define-key global-map "\C-cl" 'org-store-link)
+  (define-key global-map "\C-ca" 'org-agenda)
+  (setq org-log-done t)
+  (setq org-agenda-files (list "~/usr/org/todo.org"))
+
+#+end_src
+
+#+RESULTS:
+| ~/usr/org/todo.org |
+
+* org-roam
+#+begin_src emacs-lisp
+  (use-package org-roam
+   :ensure t
+   :init
+   (setq org-roam-v2-ack t)
+   :custom
+   (org-roam-directory "~/usr/nts")
+   (org-roam-completion-everywhere t)
+   (setq org-roam-dailies-capture-templates
+      '(("d" "default" plain
+         "%?"
+         :target (file+head "%<%Y-%m>.org" "#+TITLE: %<%Y-%m>\n"))))
+   :bind (("C-c n l" . org-roam-buffer-toggle)
+          ("C-c n f" . org-roam-node-find)
+          ("C-c n i" . org-roam-node-insert)
+          :map org-mode-map
+          ("C-M-i" . completion-at-point)
+          :map org-roam-dailies-map
+          ("Y" . org-roam-dailies-capture-yesterday)
+          ("T" . org-roam-dailies-capture-tomorrow))
+   :bind-keymap
+   ("C-c n d" . org-roam-dailies-map)
+   :config
+   (require 'org-roam-dailies) ;; Ensure the keymap is available
+    (org-roam-db-autosync-mode))
+
+  (use-package org-roam-ui
+    ;; :straight
+      ;; (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+      :ensure t
+      :after org-roam
+  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;;         a hookable mode anymore, you're advised to pick something yourself
+  ;;         if you don't care about startup time, use
+  ;;  :hook (after-init . org-roam-ui-mode)
+      :config
+      (setq org-roam-ui-sync-theme t
+            org-roam-ui-follow t
+            org-roam-ui-update-on-save t
+            org-roam-ui-open-on-start t))
+#+end_src
+
+#+RESULTS:
+: t
+

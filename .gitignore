@@ -1,11 +1,8 @@
-# Compiled
-*.elc
+# whitelist: ignore everything by default
+*
+# !*/
 
-# Packaging
-.cask
-
-# Backup files
-*~
-
-# Undo-tree save-files
-*.~undo-tree
+!LICENSE
+!README.md
+!config.org
+!.gitignore
