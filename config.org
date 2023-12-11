@@ -36,7 +36,7 @@
    (setq-default custom-file (expand-file-name "custom.el" user-emacs-directory))
    (load custom-file)
 
-   (setq visible-bell nil)              ;; disable terminal bell
+   (setq visible-bell t)              ;; disable terminal bell
    (delete-selection-mode 1)            ;; replace active region by typing
    (defalias 'yes-or-no-p 'y-or-n-p)    ;; skip typing out yes or no
    (setq make-backup-files nil)         ;; don't create backup files
