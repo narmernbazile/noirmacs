@@ -221,28 +221,28 @@
     ;; (keymap-set vertico-map "TAB" #'minibuffer-complete)
     (vertico-mode))
 
-  (use-package vertico-directory
-    :after vertico
-    :ensure nil
-    :config
-    (defun vertico-directory-delete-word ()
-    "Delete directory or word before point."
-    (interactive)
-    ;; If I could go up a directory then it means I was completing
-    ;; a directory. In that context we actually delete a word (the
-    ;; last part of the file path). However, if we're not completing
-    ;; a path, then instead of deleting a word, I delete just a char
-    ;; That's totally hackish.
-    (unless (vertico-directory-up)
-      call-interactively #'backward-delete-char)
-    (call-interactively #'virtico-directory-delete-world))
+  ;; (use-package vertico-directory
+  ;;   :after vertico
+  ;;   :ensure nil
+  ;;   :config
+  ;;   (defun vertico-directory-delete-word ()
+  ;;   "Delete directory or word before point."
+  ;;   (interactive)
+  ;;   ;; If I could go up a directory then it means I was completing
+  ;;   ;; a directory. In that context we actually delete a word (the
+  ;;   ;; last part of the file path). However, if we're not completing
+  ;;   ;; a path, then instead of deleting a word, I delete just a char
+  ;;   ;; That's totally hackish.
+  ;;   (unless (vertico-directory-up)
+  ;;     call-interactively #'backward-delete-char)
+  ;;   (call-interactively #'virtico-directory-delete-world))
 
-    ;; More convenient directory navigation commands
-    :bind (:map vertico-map
-    ;; ("TAB"   . vertico-insert)
-    ("RET"   . vertico-directory-enter)
-    ;; ("M-DEL" . vertico-directory-delete-char)
-    ("DEL"   . vertico-directory-delete-char)))
+  ;;   ;; More convenient directory navigation commands
+  ;;   :bind (:map vertico-map
+  ;;   ;; ("TAB"   . vertico-insert)
+  ;;   ("RET"   . vertico-directory-enter)
+  ;;   ;; ("M-DEL" . vertico-directory-delete-char)
+  ;;   ("DEL"   . vertico-directory-delete-char)))
 
   (use-package marginalia
     :ensure t
@@ -265,8 +265,6 @@
                      orderless)))))
 
 #+end_src
-
-#+RESULTS:
 
 * autocompletion
 #+begin_src emacs-lisp
@@ -434,13 +432,28 @@
   ;;(with-eval-after-load 'org (global-org-modern-mode)))
 
   (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
-  (add-hook 'org-mode-hook 'org-indent-mode)
-  (add-hook 'org-mode-hook 'flyspell-mode)
   (define-key global-map "\C-cl" 'org-store-link)
   (define-key global-map "\C-ca" 'org-agenda)
-  (setq org-log-done t)
-  (setq org-agenda-files (list "~/usr/org/todo.org"))
 
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-hook 'org-mode-hook 'flyspell-mode)
+
+  (setq org-log-done t)
+
+  ;; org-agenda 
+  (setq org-agenda-files (list "~/usr/org/todo.org"))
+  (setq org-default-notes-file "~/usr/org/todo.org")
+  ;;(add-to-list 'org-capture-templates
+  ;;             '("t" "task"  entry
+  ;;               (file org-default-notes-file)
+  ;;                "* TODO %?" :empty-lines 1))
+
+  ;; (setq org-capture-templates
+  ;;       '(("t" "todo" entry (file org-default-notes-file) 
+  ;;          "* TODO %?\n  %i\n  %a")
+  ;;         ("j" "Journal" entry (file+datetree "~/org/journal.org")
+  ;;           "* %?\nEntered on %U\n  %i\n  %a")
+  ;; 	("n" "note" entry)))
 #+end_src
 
 #+RESULTS:
@@ -491,4 +504,10 @@
 
 #+RESULTS:
 : t
+
+* org-kanban
+#+begin_src emacs-lisp
+  
+#+end_src
+
 
