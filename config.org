@@ -3,6 +3,7 @@
 #+EMAIL:    narmernbazile@gmail.com
 #+LANGUAGE: en
 #+STARTUP:  overview
+#+PROPERTY: header-args :tangle yes :results silent
 
 * whoami
 #+BEGIN_SRC emacs-lisp
@@ -456,9 +457,6 @@
   ;; 	("n" "note" entry)))
 #+end_src
 
-#+RESULTS:
-| ~/usr/org/todo.org |
-
 * org-roam
 #+begin_src emacs-lisp
   (use-package org-roam
@@ -507,7 +505,5 @@
 
 * org-kanban
 #+begin_src emacs-lisp
-  
+  (use-package org-kanban :ensure t)
 #+end_src
-
-
