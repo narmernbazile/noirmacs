@@ -11,6 +11,19 @@
         user-mail-address "narmernbazile@gmail.com")
 #+END_SRC
 
+* environment
+#+begin_src emacs-lisp
+  (when (eq system-type 'windows-nt)
+   (progn
+   (setq chocolatey-root "c:/ProgramData/chocolatey")
+   (setq chocolatey-lib
+         (concat chocolatey-root "/" "lib"))
+   (setq chocolatey-bin
+         (concat chocolatey-root "/" "bin"))
+   (setq exec-path (append '("c:/Python312"
+                             "c:/ProgramData/chocolatey/bin"
+                             exec-path)))))
+#+end_src
 * appearance
 #+BEGIN_SRC emacs-lisp
 
@@ -50,9 +63,9 @@
 
    ;; auto-close brackets, parenthesis, and double quotes
    (setq electric-pair-pairs '((?\( . ?\))
-			       (?\[ . ?\])
-			       (?\{ . ?\})
-			       (?\" . ?\")))
+                               (?\[ . ?\])
+                               (?\{ . ?\})
+                               (?\" . ?\")))
    (electric-pair-mode t)
 
    ;; word wrap
@@ -60,87 +73,15 @@
    (setq-default truncate-lines nil) ;; nil for wrap, t for no wrap
    (global-visual-line-mode 1)
 
-  ;; whitespace
-  ;; (setq-default 'sentence-end-double-space nil) ;; period + space = sentence
-  ;; (setq-default 'indent-tabs-mode nil)          ;; never use tabs by default
-  ;; (setq tab-width 2)                           ;; 1 tab = 2 spaces
-  ;; (defvaralias 'c-basic-offset 'tab-width)
-  ;; (defvaralias 'cperl-indent-level 'tab-width)
+   ;; configuration for flyspell on windows
+   (cond ((string-equal system-type "windows-nt")
+     (progn (setq ispell-program-name
+       (concat chocolatey-lib "/" "hunspell.portable/bin/hunspell")))))
 
-   ;; whitespace
-   ;; (setq custom-tab-width 2)
-
-   ;; (defun disable-tabs () (setq indent-tabs-mode nil))
-   ;; (defun enable-tabs  ()
-   ;;   (local-set-key (kbd "TAB") 'tab-to-tab-stop)
-   ;;   (setq indent-tabs-mode t)
-   ;;   (setq tab-width custom-tab-width))
-
-   ;; (add-hook 'prog-mode-hook 'disable-tabs)
-   ;; (setq-default eletric-indent-inhibit t)
-   ;; (setq backward-delete-char-untabify-method 'hungry)
-   ;; (global-whitespace-mode) ; Enable whitespace mode everywhere
-
+  ;; default windows font is hideous
+  (when (eq system-type 'windows-nt)
+    (set-face-attribute 'default nil :family "Consolas" :height 100 :width 'normal))
 #+END_SRC
-
-* helper functions
-#+begin_src emacs-lisp
-;  (defun noir/find-user-config-file ()
-;    (interactive)
-;    (find-file user-config-file))
-;
-;  (defun noir/find-user-init-file ()
-;    (interactive)
-;    (find-file user-init-file))
-
-;  (defun noir/sync-user-configuration ()
-;    "Reevaluates the contents of your init.el file"
-;    (interactive)
-;    (load user-init-file))
-
-  ;; found at http://emacswiki.org/emacs/KillingBuffers
-;  (defun noir/kill-other-buffers (&optional arg)
-;    "Kill all other buffers. If the universal prefix argument is used then will the windows too."
-;    (interactive "P")
-;    (when (yes-or-no-p (format "Killing all buffers except \"%s\"? " (buffer-name)))
-;      (mapc 'kill-buffer (delq (current-buffer) (buffer-list)))
-;      (when (equal '(4) arg) (delete-other-windows))
-;      (message "Buffers deleted!")))
-
-;  (defun noir/sync-user-configuration ()
-;    "Reevaluates the contents of your init.el file"
-;     (interactive)
-;     (load user-init-file))
-
-;  (defun toggle-window-split ()
-;    (interactive)
-;    (if (= (count-windows) 2)
-;    (let* ((this-win-buffer (window-buffer))
-;      (next-win-buffer (window-buffer (next-window)))
-;      (this-win-edges (window-edges (selected-window)))
-;      (next-win-edges (window-edges (next-window)))
-;      (this-win-2nd (not (and (<= (car this-win-edges)
-;			 (car next-win-edges))
-;			 (<= (cadr this-win-edges)
-;			 (cadr next-win-edges)))))
-;      (splitter
-;      (if (= (car this-win-edges)
-;	     (car (window-edges (next-window))))
-;	       'split-window-horizontally
-;	       'split-window-vertically)))
-;     (delete-other-windows)
-;      (let ((first-win (selected-window)))
-;	(funcall splitter)
-;	(if this-win-2nd (other-window 1))
-;	(set-window-buffer (selected-window) this-win-buffer)
-;	(set-window-buffer (next-window) next-win-buffer)
-;	(select-window first-win)
-;	(if this-win-2nd (other-window 1))))))))
-
-; (global-set-key (kbd "C-x |") 'toggle-window-split)
-
-#+end_src
-
 * packages
 #+begin_src emacs-lisp
 
