@@ -448,3 +448,11 @@
 #+begin_src emacs-lisp
   (use-package org-kanban :ensure t)
 #+end_src
+
+* yaml
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+#+end_src
