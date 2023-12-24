@@ -520,7 +520,11 @@
     )
 #+end_src
 
-* mu4e
+* yaml
 #+begin_src emacs-lisp
-
+  (use-package yaml-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+>>>>>>> bd0746ec4858b97f41778f38788349913acf36df
 #+end_src
