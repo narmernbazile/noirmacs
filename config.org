@@ -16,13 +16,8 @@
   (when (eq system-type 'windows-nt)
    (progn
    (setq chocolatey-root "c:/ProgramData/chocolatey")
-   (setq chocolatey-lib
-         (concat chocolatey-root "/" "lib"))
    (setq chocolatey-bin
-         (concat chocolatey-root "/" "bin"))
-   (setq exec-path (append '("c:/Python312"
-                             "c:/ProgramData/chocolatey/bin"
-                             exec-path)))))
+         (concat chocolatey-root "/" "bin"))))
 #+end_src
 * appearance
 #+BEGIN_SRC emacs-lisp
@@ -76,12 +71,41 @@
    ;; configuration for flyspell on windows
    (cond ((string-equal system-type "windows-nt")
      (progn (setq ispell-program-name
-       (concat chocolatey-lib "/" "hunspell.portable/bin/hunspell")))))
+       (concat chocolatey-bin "/" "hunspell.exe")))))
 
   ;; default windows font is hideous
   (when (eq system-type 'windows-nt)
     (set-face-attribute 'default nil :family "Consolas" :height 100 :width 'normal))
 #+END_SRC
+* functions
+#+begin_src emacs-lisp
+  (defun toggle-window-split ()
+    (interactive)
+    (if (= (count-windows) 2)
+        (let* ((this-win-buffer (window-buffer))
+           (next-win-buffer (window-buffer (next-window)))
+           (this-win-edges (window-edges (selected-window)))
+           (next-win-edges (window-edges (next-window)))
+           (this-win-2nd (not (and (<= (car this-win-edges)
+                       (car next-win-edges))
+                       (<= (cadr this-win-edges)
+                       (cadr next-win-edges)))))
+           (splitter
+            (if (= (car this-win-edges)
+               (car (window-edges (next-window))))
+            'split-window-horizontally
+          'split-window-vertically)))
+      (delete-other-windows)
+      (let ((first-win (selected-window)))
+        (funcall splitter)
+        (if this-win-2nd (other-window 1))
+        (set-window-buffer (selected-window) this-win-buffer)
+        (set-window-buffer (next-window) next-win-buffer)
+        (select-window first-win)
+        (if this-win-2nd (other-window 1))))))
+
+  (global-set-key (kbd "C-x |") 'toggle-window-split)
+#+end_src
 * packages
 #+begin_src emacs-lisp
 
@@ -294,56 +318,56 @@
 
 * lsp | dap mode
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :hook ((c-mode          ; clangd
-            c++-mode        ; clangd
-            c-or-c++-mode   ; clangd
-            java-mode       ; eclipse-jdtls
-            js-mode         ; ts-ls (tsserver wrapper)
-            js-jsx-mode     ; ts-ls (tsserver wrapper)
-            typescript-mode ; ts-ls (tsserver wrapper)
-            python-mode     ; pyright
-            web-mode        ; ts-ls/HTML/CSS
-            haskell-mode    ; haskell-language-server
-            ) . lsp-deferred)
-    :commands lsp
-    :config
-    (setq lsp-auto-guess-root t)
-    (setq lsp-log-io nil)
-    (setq lsp-restart 'auto-restart)
-    (setq lsp-enable-symbol-highlighting nil)
-    (setq lsp-enable-on-type-formatting nil)
-    (setq lsp-signature-auto-activate nil)
-    (setq lsp-signature-render-documentation nil)
-    (setq lsp-eldoc-hook nil)
-    (setq lsp-modeline-code-actions-enable nil)
-    (setq lsp-modeline-diagnostics-enable nil)
-    (setq lsp-headerline-breadcrumb-enable nil)
-    (setq lsp-semantic-tokens-enable nil)
-    (setq lsp-enable-folding nil)
-    (setq lsp-enable-imenu nil)
-    (setq lsp-enable-snippet nil)
-    (setq read-process-output-max (* 1024 1024)) ;; 1MB
-    (setq lsp-idle-delay 0.5))
+  ;; (use-package lsp-mode
+  ;;   :hook ((c-mode          ; clangd
+  ;;           c++-mode        ; clangd
+  ;;           c-or-c++-mode   ; clangd
+  ;;           java-mode       ; eclipse-jdtls
+  ;;           js-mode         ; ts-ls (tsserver wrapper)
+  ;;           js-jsx-mode     ; ts-ls (tsserver wrapper)
+  ;;           typescript-mode ; ts-ls (tsserver wrapper)
+  ;;           python-mode     ; pyright
+  ;;           web-mode        ; ts-ls/HTML/CSS
+  ;;           haskell-mode    ; haskell-language-server
+  ;;           ) . lsp-deferred)
+  ;;   :commands lsp
+  ;;   :config
+  ;;   (setq lsp-auto-guess-root t)
+  ;;   (setq lsp-log-io nil)
+  ;;   (setq lsp-restart 'auto-restart)
+  ;;   (setq lsp-enable-symbol-highlighting nil)
+  ;;   (setq lsp-enable-on-type-formatting nil)
+  ;;   (setq lsp-signature-auto-activate nil)
+  ;;   (setq lsp-signature-render-documentation nil)
+  ;;   (setq lsp-eldoc-hook nil)
+  ;;   (setq lsp-modeline-code-actions-enable nil)
+  ;;   (setq lsp-modeline-diagnostics-enable nil)
+  ;;   (setq lsp-headerline-breadcrumb-enable nil)
+  ;;   (setq lsp-semantic-tokens-enable nil)
+  ;;   (setq lsp-enable-folding nil)
+  ;;   (setq lsp-enable-imenu nil)
+  ;;   (setq lsp-enable-snippet nil)
+  ;;   (setq read-process-output-max (* 1024 1024)) ;; 1MB
+  ;;   (setq lsp-idle-delay 0.5))
 
-  (use-package lsp-ui
-      :ensure t
-      :commands lsp-ui-mode
-      :config
-      (setq lsp-ui-doc-enable nil)
-      (setq lsp-ui-doc-header t)
-      (setq lsp-ui-doc-include-signature t)
-      (setq lsp-ui-doc-border (face-foreground 'default))
-      (setq lsp-ui-sideline-show-code-actions t)
-      (setq lsp-ui-sideline-delay 0.05)
-      (setq lsp-headerline-breadcrumb-icons-enable nil)
-      (setq lsp-headerline-breadcrumb-enable nil))
+  ;; (use-package lsp-ui
+  ;;     :ensure t
+  ;;     :commands lsp-ui-mode
+  ;;     :config
+  ;;     (setq lsp-ui-doc-enable nil)
+  ;;     (setq lsp-ui-doc-header t)
+  ;;     (setq lsp-ui-doc-include-signature t)
+  ;;     (setq lsp-ui-doc-border (face-foreground 'default))
+  ;;     (setq lsp-ui-sideline-show-code-actions t)
+  ;;     (setq lsp-ui-sideline-delay 0.05)
+  ;;     (setq lsp-headerline-breadcrumb-icons-enable nil)
+  ;;     (setq lsp-headerline-breadcrumb-enable nil))
 
-  (use-package lsp-treemacs
-      :ensure t
-      :config (setq lsp-treemacs-theme nil)
-      :commands lsp-treemacs-errors-list)
-  ;; (use-package dap-mode     :ensure t)
+  ;; (use-package lsp-treemacs
+  ;;     :ensure t
+  ;;     :config (setq lsp-treemacs-theme nil)
+  ;;     :commands lsp-treemacs-errors-list)
+  ;; ;; (use-package dap-mode     :ensure t)
 #+end_src
 
 * c/c++
@@ -364,6 +388,13 @@
 * lisp
 #+begin_src emacs-lisp
   (setq lisp-indent-offset 2)
+#+end_src
+
+* haskell
+#+begin_src emacs-lisp
+  (use-package haskell-mode
+    :mode "\\.hs\\'"
+    :hook (haskell-mode . turn-on-haskell-indent))
 #+end_src
 
 * org
@@ -396,6 +427,17 @@
   ;;         ("j" "Journal" entry (file+datetree "~/org/journal.org")
   ;;           "* %?\nEntered on %U\n  %i\n  %a")
   ;; 	("n" "note" entry)))
+#+end_src
+
+* org-babel
+#+begin_src emacs-lisp
+  (use-package org-babel
+    :no-require
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+      '((python   . t)
+        (haskell  . t))))
 #+end_src
 
 * org-roam
@@ -447,4 +489,38 @@
 * org-kanban
 #+begin_src emacs-lisp
   (use-package org-kanban :ensure t)
+#+end_src
+
+* erc
+#+begin_src emacs-lisp
+  (setq erc-server "irc.libera.chat"
+        erc-nick "noir2002"
+        erc-user-full-name "Narmer Noir Bazile"
+        erc-track-shorten-start 8
+        erc-autojoin-channels-alist '(("irc.libera.chat" "#emacs"))
+        erc-kill-buffer-on-part t
+              erc-auto-query 'bury)
+#+end_src
+
+* eglot
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t
+    :config
+    (add-hook 'haskell-mode-hook 'eglot-ensure)
+    :config
+    (setq-default eglot-workspace-configuration
+                  '((haskell
+                     (plugin
+                      (stan
+                       (globalOn . :json-false))))))  ;; disable stan
+    :custom
+    (eglot-autoshutdown t)  ;; shutdown language server after closing last file
+    (eglot-confirm-server-initiated-edits nil)  ;; allow edits without confirmation
+    )
+#+end_src
+
+* mu4e
+#+begin_src emacs-lisp
+
 #+end_src
