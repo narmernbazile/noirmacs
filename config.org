@@ -264,6 +264,7 @@
 * keybinding packages
 ** evil
 #+begin_src emacs-lisp
+<<<<<<< Updated upstream
 (use-package evil
   :ensure t
   :config (evil-mode 1))
@@ -277,6 +278,12 @@
   :ensure t
   :diminish evil-surround-mode
   :config (global-evil-surround-mode 1))
+=======
+  ;; (use-package company
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'prog-mode-hook 'global-company-mode))
+>>>>>>> Stashed changes
 #+end_src
 
 ** general.el | which-key
