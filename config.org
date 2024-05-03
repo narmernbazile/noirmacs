@@ -6,7 +6,6 @@
 #+STARTUP:  overview
 #+PROPERTY: header-args :tangle yes :results silent
 
-* TODOs
 
 * whoami
 #+BEGIN_SRC emacs-lisp
@@ -184,7 +183,7 @@
   ;;   'scimax/org-return)
 
 #+end_src
-* packages
+* package setup
 #+begin_src emacs-lisp
 
   ;; configure package sources
@@ -202,25 +201,8 @@
   (require 'use-package)
 
 #+end_src
-
-* evil
-#+begin_src emacs-lisp
-(use-package evil
-  :ensure t
-  :config (evil-mode 1))
-
-(use-package evil-commentary
-  :ensure t
-  :diminish t
-  :config (evil-commentary-mode))
-
-(use-package evil-surround
-  :ensure t
-  :diminish evil-surround-mode
-  :config (global-evil-surround-mode 1))
-#+end_src
-
-* icons and themes
+* ui packages 
+** icons and themes
 #+begin_src emacs-lisp
 (use-package doom-themes
   :ensure t
@@ -229,7 +211,7 @@
 (use-package all-the-icons :ensure t)
 #+end_src
 
-* modeline
+** modeline
 #+begin_src emacs-lisp
 (use-package doom-modeline
   :ensure t
@@ -253,72 +235,58 @@
   :config (minions-mode 1))
 #+end_src
 
-* completion
+** solaire
 #+begin_src emacs-lisp
+  (use-package solaire-mode
+    :ensure t
+    :hook (after-init . solaire-global-mode)
+    :config
+    (push '(treemacs-window-background-face . solaire-default-face) solaire-mode-remap-alist)
+    (push '(treemacs-hl-line-face . solaire-hl-line-face) solaire-mode-remap-alist))
+#+end_src
+** completion
+#+begin_src emacs-lisp
+
   (use-package vertico
     :ensure t
+    :init
+    (vertico-mode)
     :custom
-    (vertico-count 13)                    ; Number of candidates to display
-    (vertico-resize t)
-    (vertico-cycle t) ; Go from last to first candidate and first to last (cycle)?
-    :config
-    ;; (keymap-set vertico-map "TAB" #'minibuffer-complete)
-    (vertico-mode))
-
-  ;; (use-package vertico-directory
-  ;;   :after vertico
-  ;;   :ensure nil
-  ;;   :config
-  ;;   (defun vertico-directory-delete-word ()
-  ;;   "Delete directory or word before point."
-  ;;   (interactive)
-  ;;   ;; If I could go up a directory then it means I was completing
-  ;;   ;; a directory. In that context we actually delete a word (the
-  ;;   ;; last part of the file path). However, if we're not completing
-  ;;   ;; a path, then instead of deleting a word, I delete just a char
-  ;;   ;; That's totally hackish.
-  ;;   (unless (vertico-directory-up)
-  ;;     call-interactively #'backward-delete-char)
-  ;;   (call-interactively #'virtico-directory-delete-world))
-
-  ;;   ;; More convenient directory navigation commands
-  ;;   :bind (:map vertico-map
-  ;;   ;; ("TAB"   . vertico-insert)
-  ;;   ("RET"   . vertico-directory-enter)
-  ;;   ;; ("M-DEL" . vertico-directory-delete-char)
-  ;;   ("DEL"   . vertico-directory-delete-char)))
+    (vertico-count 13))
 
   (use-package marginalia
     :ensure t
-    ;; :general
-    ;; (:keymaps 'minibuffer-local-map
-    ;; "M-A" 'marginalia-cycle)
-    :custom
-    (marginalia-max-relative-age 0)
-    (marginalia-align 'right)
     :init
     (marginalia-mode))
 
-  (use-package orderless
-    :ensure t
-    :custom
-    (completion-styles '(orderless))      ; Use orderless
-    (completion-category-defaults nil)    ; I want to be in control!
-    (completion-category-overrides
-    '((file (styles basic-remote ; For `tramp' hostname completion with `vertico'
-                     orderless)))))
-
 #+end_src
 
-* autocompletion
+* keybinding packages
+** evil
 #+begin_src emacs-lisp
-  (use-package company
-    :ensure t
-    :config
-    (add-hook 'prog-mode-hook 'global-company-mode))
+<<<<<<< Updated upstream
+(use-package evil
+  :ensure t
+  :config (evil-mode 1))
+
+(use-package evil-commentary
+  :ensure t
+  :diminish t
+  :config (evil-commentary-mode))
+
+(use-package evil-surround
+  :ensure t
+  :diminish evil-surround-mode
+  :config (global-evil-surround-mode 1))
+=======
+  ;; (use-package company
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'prog-mode-hook 'global-company-mode))
+>>>>>>> Stashed changes
 #+end_src
 
-* general.el | which-key
+** general.el | which-key
 #+begin_src emacs-lisp
   
   (use-package general
@@ -366,116 +334,8 @@
 
 #+end_src
 
-* projectile
-#+begin_src emacs-lisp
-  (use-package projectile :ensure t)
-  (use-package treemacs-projectile :after (treemacs projectire) :ensure t)
-#+end_src
-
-* treemacs
-#+begin_src emacs-lisp
-    (use-package treemacs
-      :ensure t
-      :defer t
-      :config
-      (setq   treemacs-follow-after-init          t
-	      treemacs-width                      35
-	      treemacs-indentation                2
-	      treemacs-space-between-root-nodes   nil
-	      treemacs-read-string-input          'from-child-frame
-	      treemacs-show-hidden-files          t
-	      treemacs-never-persist              nil
-	      treemacs-goto-tag-strategy          'refetch-index))
-
-  (use-package treemacs-all-the-icons
-    :ensure t
-    :config
-    (treemacs-load-theme "all-the-icons"))
-
-#+end_src
-
-* lsp | dap mode
-#+begin_src emacs-lisp
-  ;; (use-package lsp-mode
-  ;;   :hook ((c-mode          ; clangd
-  ;;           c++-mode        ; clangd
-  ;;           c-or-c++-mode   ; clangd
-  ;;           java-mode       ; eclipse-jdtls
-  ;;           js-mode         ; ts-ls (tsserver wrapper)
-  ;;           js-jsx-mode     ; ts-ls (tsserver wrapper)
-  ;;           typescript-mode ; ts-ls (tsserver wrapper)
-  ;;           python-mode     ; pyright
-  ;;           web-mode        ; ts-ls/HTML/CSS
-  ;;           haskell-mode    ; haskell-language-server
-  ;;           ) . lsp-deferred)
-  ;;   :commands lsp
-  ;;   :config
-  ;;   (setq lsp-auto-guess-root t)
-  ;;   (setq lsp-log-io nil)
-  ;;   (setq lsp-restart 'auto-restart)
-  ;;   (setq lsp-enable-symbol-highlighting nil)
-  ;;   (setq lsp-enable-on-type-formatting nil)
-  ;;   (setq lsp-signature-auto-activate nil)
-  ;;   (setq lsp-signature-render-documentation nil)
-  ;;   (setq lsp-eldoc-hook nil)
-  ;;   (setq lsp-modeline-code-actions-enable nil)
-  ;;   (setq lsp-modeline-diagnostics-enable nil)
-  ;;   (setq lsp-headerline-breadcrumb-enable nil)
-  ;;   (setq lsp-semantic-tokens-enable nil)
-  ;;   (setq lsp-enable-folding nil)
-  ;;   (setq lsp-enable-imenu nil)
-  ;;   (setq lsp-enable-snippet nil)
-  ;;   (setq read-process-output-max (* 1024 1024)) ;; 1MB
-  ;;   (setq lsp-idle-delay 0.5))
-
-  ;; (use-package lsp-ui
-  ;;     :ensure t
-  ;;     :commands lsp-ui-mode
-  ;;     :config
-  ;;     (setq lsp-ui-doc-enable nil)
-  ;;     (setq lsp-ui-doc-header t)
-  ;;     (setq lsp-ui-doc-include-signature t)
-  ;;     (setq lsp-ui-doc-border (face-foreground 'default))
-  ;;     (setq lsp-ui-sideline-show-code-actions t)
-  ;;     (setq lsp-ui-sideline-delay 0.05)
-  ;;     (setq lsp-headerline-breadcrumb-icons-enable nil)
-  ;;     (setq lsp-headerline-breadcrumb-enable nil))
-
-  ;; (use-package lsp-treemacs
-  ;;     :ensure t
-  ;;     :config (setq lsp-treemacs-theme nil)
-  ;;     :commands lsp-treemacs-errors-list)
-  ;; ;; (use-package dap-mode     :ensure t)
-#+end_src
-
-* c/c++
-#+begin_src emacs-lisp
-
-#+end_src
-
-* python
-#+begin_src emacs-lisp
-  (use-package lsp-pyright
-    :ensure t
-    :hook (python-mode . (lambda () (require 'lsp-pyright)))
-    :init (when (executable-find "python3")
-          (setq lsp-pyright-python-executable-cmd "python3")))
-  (setq-default python-indent-offset 4)
-#+end_src
-
-* lisp
-#+begin_src emacs-lisp
-  (setq lisp-indent-offset 2)
-#+end_src
-
-* haskell
-#+begin_src emacs-lisp
-  (use-package haskell-mode
-    :mode "\\.hs\\'"
-    :hook (haskell-mode . turn-on-haskell-indent))
-#+end_src
-
-* org
+* ORG MODE
+** org
 #+begin_src emacs-lisp
   ;;(use-package org-modern
   ;;    :ensure t
@@ -505,9 +365,15 @@
   ;;         ("j" "Journal" entry (file+datetree "~/org/journal.org")
   ;;           "* %?\nEntered on %U\n  %i\n  %a")
   ;; 	("n" "note" entry)))
+
+  ;; disable exporting of table of contents when exporting to pdf via latex
+  (setq org-latex-toc-command "")
+  (setq org-export-global-macros '(("toc" . "")))
+  (setq org-latex-custom-id-as-label nil)
+
 #+end_src
 
-* org-babel
+** org-babel
 #+begin_src emacs-lisp
   (use-package org-babel
     :no-require
@@ -518,7 +384,7 @@
         (haskell  . t))))
 #+end_src
 
-* org-roam
+** org-roam
 #+begin_src emacs-lisp
   (use-package org-roam
    :ensure t
@@ -564,12 +430,107 @@
 #+RESULTS:
 : t
 
-* org-kanban
+** org-kanban
 #+begin_src emacs-lisp
   (use-package org-kanban :ensure t)
 #+end_src
 
-* erc
+** org-capture
+#+begin_src emacs-lisp
+  (defun transform-square-brackets-to-round-ones(string-to-transform)
+    "Transforms [ into ( and ] into ), other chars left unchanged."
+    (concat 
+    (mapcar #'(lambda (c) (if (equal c ?[) ?\( (if (equal c ?]) ?\) c))) string-to-transform)))
+
+  (setq org-capture-templates `(
+          ("p" "Protocol" entry (file+headline ,(concat org-directory "notes.org") "Inbox")
+          "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")	
+          ("L" "Protocol Link" entry (file+headline ,(concat org-directory "notes.org") "Inbox")
+          "* %? [[%:link][%(transform-square-brackets-to-round-ones \"%:description\")]]\n")))
+
+  (global-set-key (kbd "C-c c") 'org-capture)
+#+end_src
+
+** org-protocol
+#+begin_src emacs-lisp
+  (require 'org-protocol)
+#+end_src
+
+* Language configuration
+** lisp
+#+begin_src emacs-lisp
+  (setq lisp-indent-offset 2)
+#+end_src
+
+** haskell
+#+begin_src emacs-lisp
+  (use-package haskell-mode
+    :ensure t
+    :mode "\\.hs\\'"
+    :hook (haskell-mode . turn-on-haskell-indent))
+#+end_src
+** latex
+#+begin_src emacs-lisp
+  ;; (use-package auctex
+  ;;   :ensure t
+  ;;   :defer t
+  ;;   :config
+  ;;   (require 'pdf-tools)
+  ;;   (setq TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
+  ;;   (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+  ;;   (setq TeX-save-query nil)
+  ;;   (setq TeX-auto-save t)
+  ;;   (add-hook 'TeX-mode-hook 'outline-minor-mode))
+
+  (use-package latex
+    :ensure auctex
+    :hook ((LaTeX-mode . prettify-symbols-mode))
+    :bind (:map LaTeX-mode-map
+           ("C-S-e" . latex-math-from-calc))
+    :config
+    ;; Format math as a Latex string with Calc
+    (defun latex-math-from-calc ()
+      "Evaluate `calc' on the contents of line at point."
+      (interactive)
+      (cond ((region-active-p)
+             (let* ((beg (region-beginning))
+                    (end (region-end))
+                    (string (buffer-substring-no-properties beg end)))
+               (kill-region beg end)
+               (insert (calc-eval `(,string calc-language latex
+                                            calc-prefer-frac t
+                                            calc-angle-mode rad)))))
+            (t (let ((l (thing-at-point 'line)))
+                 (end-of-line 1) (kill-line 0) 
+                 (insert (calc-eval `(,l
+                                      calc-language latex
+                                      calc-prefer-frac t
+                                      calc-angle-mode rad))))))))
+
+  (use-package cdlatex
+    :ensure t
+    :hook (LaTeX-mode . turn-on-cdlatex)
+    :bind (:map cdlatex-mode-map 
+                ("<tab>" . cdlatex-tab)))
+
+
+#+end_src
+
+** ledger-mode
+#+begin_src emacs-lisp
+  (use-package ledger-mode :ensure t)
+#+end_src
+
+** yaml
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+#+end_src
+
+* Applications
+** erc
 #+begin_src emacs-lisp
   (setq erc-server "irc.libera.chat"
         erc-nick "noir2002"
@@ -580,41 +541,85 @@
               erc-auto-query 'bury)
 #+end_src
 
-* eglot
+** denote
+#+begin_src emacs-lisp
+  (use-package denote
+    :ensure )
+#+end_src
+
+** nov.el
+#+begin_src emacs-lisp
+  (use-package nov
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+    (when (or (eq system-type 'gnu/linux)
+              (eq system-type 'darwin))
+      (defun my-nov-font-setup ()
+        (face-remap-add-relative 'variable-pitch :family "Linux Libertine O"
+                                                 :height 1.5))
+      (add-hook 'nov-mode-hook 'my-nov-font-setup)))
+#+end_src
+
+** pdf-tools
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :ensure t
+    :mode ("\.pdf\'" . pdf-view-mode)
+    :config
+    (pdf-tools-install))
+
+#+end_src
+
+* IDE packages
+** projectile
+#+begin_src emacs-lisp
+  (use-package projectile :ensure t)
+  (use-package treemacs-projectile :after (treemacs projectile) :ensure t)
+#+end_src
+
+** autocompletion
+#+begin_src emacs-lisp
+  (use-package company
+    :ensure t
+    :config
+    (add-hook 'prog-mode-hook 'global-company-mode))
+#+end_src
+
+** treemacs
+#+begin_src emacs-lisp
+    (use-package treemacs
+      :ensure t
+      :bind ("C-c t" . treemacs)
+      :custom
+      (treemacs-is-never-other-window t)
+
+      :hook
+      (treemacs-mode . treemacs-project-follow-mode))
+
+  (use-package treemacs-all-the-icons
+    :ensure t
+    :config
+    (treemacs-load-theme "all-the-icons"))
+
+#+end_src
+
+** eglot (language server) & dape (debugger)
 #+begin_src emacs-lisp
   (use-package eglot
     :ensure t
-    :config
-    (add-hook 'haskell-mode-hook 'eglot-ensure)
-    :config
-    (setq-default eglot-workspace-configuration
-                  '((haskell
-                     (plugin
-                      (stan
-                       (globalOn . :json-false))))))  ;; disable stan
-    :custom
-    (eglot-autoshutdown t)  ;; shutdown language server after closing last file
-    (eglot-confirm-server-initiated-edits nil)  ;; allow edits without confirmation
-    )
+    ;; :config
+    ;; (setq eglot-report-progress nil)
+
+    :hook
+    (python-mode . eglot-ensure)
+    (haskell-mode . eglot-ensure)
+
+    :bind
+    (("<f7>" . dape-step-in)
+     ("<f8>" . dape-next)
+     ("<f9>" . dape-continue)))
+
+  (use-package dape
+    :after elgot)
 #+end_src
-
-* yaml
-#+begin_src emacs-lisp
-  (use-package yaml-mode
-    :ensure t
-    :config
-    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
-#+end_src
-
-* ledger-mode
-#+begin_src emacs-lisp
-  (use-package ledger-mode
-    :ensure t
-    :init
-    (setq ledger-clear-whole-transactions 1)
-
-    :config
-    (add-to-list 'evil-emacs-state-modes 'ledger-report-mode)
-    :mode "\\.dat\\'")
-#+end_src
-
