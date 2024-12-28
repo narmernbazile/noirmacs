@@ -24,18 +24,18 @@
 * appearance
 #+BEGIN_SRC emacs-lisp
 
-    ;; minimal ui
-    (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-    (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-    (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+  ;; minimal ui
+  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+  ;;(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
-    (setq inhibit-startup-message t)   ;; omit default startup screen
-    (setq initial-scratch-message nil) ;; remove initial scratch buffer message
+  (setq inhibit-startup-message t)   ;; omit default startup screen
+  (setq initial-scratch-message nil) ;; remove initial scratch buffer message
 
-    ;; highlight current line and enable line and column numbers
-    (when window-system (add-hook 'prog-mode-hook 'hl-line-mode))
-    (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-    (column-number-mode 1)
+  ;; highlight current line and enable line and column numbers
+  (when window-system (add-hook 'prog-mode-hook 'hl-line-mode))
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (column-number-mode 1)
 
 #+END_SRC
 
@@ -179,13 +179,18 @@
     :init
     (vertico-mode)
     :custom
-    (vertico-count 13))
+    (vertico-count 10))
 
   (use-package marginalia
     :ensure t
     :init
     (marginalia-mode))
 
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
 * keybinding packages
@@ -240,9 +245,9 @@
     "oe" '(eshell    :which-key "eshell")
 
     "q"  '(:ignore t              :which-key "quit")
-    "qR" '(restart-emacs          :which-key "restart-emacs")
+    "qR" '(restart-emacs          :which-key "restart-emacs")))
 
-    "p"  '(projectile-command-map :which-key "projectile")))
+    ;;"p"  '(projectile-command-map :which-key "projectile")))
 
     ;; Example: Adding projectile-compile-project to leader key
     ;; (my-leader-def
@@ -291,7 +296,8 @@
      'org-babel-load-languages
       '((js      . t)
         (python  . t)
-        (haskell . t))))
+        (haskell . t)
+        (java    . t))))
 #+end_src
 
 ** org-roam
@@ -299,7 +305,7 @@
   (use-package org-roam
     :ensure t
     :custom
-    (org-roam-directory "~/usr/nts/zz-roam")
+    (org-roam-directory "~/usr/nts")
     (org-roam-completion-everwhere t)
     (org-roam-dailies-capture-templates
       '(("d" "default" entry "* %<%I:%M %p>: %?"
@@ -320,20 +326,20 @@
 #+end_src
 
 ** org-ui
-#+begin_src 
-;; (use-package org-roam-ui
-;; (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-;;      :ensure t
-;;      :after org-roam
-;;  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-;;  ;;         a hookable mode anymore, you're advised to pick something yourself
-;;  ;;         if you don't care about startup time, use
-;;  ;;  :hook (after-init . org-roam-ui-mode)
-;;      :config
-;;      (setq org-roam-ui-sync-theme t
-;;            org-roam-ui-follow t
-;;            org-roam-ui-update-on-save t
-;;            org-roam-ui-open-on-start t))
+#+begin_src emacs-lisp
+  (use-package org-roam-ui
+  ;; (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+       :ensure t
+       :after org-roam
+   ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+   ;;         a hookable mode anymore, you're advised to pick something yourself
+   ;;         if you don't care about startup time, use
+   ;;  :hook (after-init . org-roam-ui-mode)
+       :config
+       (setq org-roam-ui-sync-theme t
+             org-roam-ui-follow t
+             org-roam-ui-update-on-save t
+             org-roam-ui-open-on-start t))
 #+end_src
 ** org-kanban
 #+begin_src emacs-lisp
@@ -434,6 +440,10 @@
     (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
 #+end_src
 
+** c/c++
+#+begin_src emacs-lisp
+  (setq c-basic-offset 2)
+#+end_src
 * Applications
 ** erc
 #+begin_src emacs-lisp
