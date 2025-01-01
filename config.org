@@ -346,6 +346,11 @@ TODO: avy, consult, embark, wgrep?
     (evil-set-initial-state 'text-mode 'normal)
     (evil-set-initial-state 'prog-mode 'normal))
 
+  (use-package evil-commentary
+    :ensure t
+    :diminish t
+    :config (evil-commentary-mode))
+
 #+end_src
 ** Org-mode configuration
 *** general
