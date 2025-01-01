@@ -268,6 +268,7 @@ TODO: avy, consult, embark, wgrep?
   (setopt tab-bar-show 1)
 #+end_src
 ** Development configuration
+*** general (treesitter, eglot)
 #+begin_src emacs-lisp
   ;; common file types
   (use-package markdown-mode :hook ((markdown-mode . visual-line-mode)))
@@ -310,6 +311,16 @@ TODO: avy, consult, embark, wgrep?
   ;              '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
   )
 
+#+end_src
+*** javascript
+#+begin_src emacs-lisp
+  (use-package js-ts-mode
+    :ensure nil
+    :mode "\\.js\\'"
+    :hook (js-ts-mode . (lambda ()
+                          (setq js-indent-level 2))))
+
+  ;;(setq js-indent-level 2)
 #+end_src
 ** Evil-mode configuration
 #+begin_src emacs-lisp
