@@ -172,8 +172,8 @@ TODO: avy, consult, embark, wgrep?
   (use-package vertico-directory
     :after vertico
     :bind (:map vertico-map
-		;; make backspace key delete entire directory
-		("DEL" . vertico-directory-delete-word)))
+                ;; make backspace key delete entire directory
+                ("DEL" . vertico-directory-delete-word)))
 
   ;; Marginalia: annotations for minibuffer
   (use-package marginalia
@@ -194,9 +194,9 @@ TODO: avy, consult, embark, wgrep?
     (global-corfu-mode)
     :bind
     (:map corfu-map
-	  ("SPC" . corfu-insert-separator)
-	  ("C-n" . corfu-next)
-	  ("C-p" . corfu-previous))
+          ("SPC" . corfu-insert-separator)
+          ("C-n" . corfu-next)
+          ("C-p" . corfu-previous))
     :custom
     (corfu-auto t) ;; Enable auto completion
     (corfu-cycle t) ;; Allow cycling through suggestions
@@ -227,7 +227,7 @@ TODO: avy, consult, embark, wgrep?
     :ensure t
     :init
     (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-    (add-to-list 'completion-at-point-functions #'cape-symbol) ;; Symbol completion
+    ;;(add-to-list 'completion-at-point-functions #'cape-symbol) ;; Symbol completion
     (add-to-list 'completion-at-point-functions #'cape-file))
 
   ;; Pretty icons for corfu
@@ -320,19 +320,24 @@ TODO: avy, consult, embark, wgrep?
     :init
     (setq evil-respect-visual-line-mode t)
     (setq evil-undo-system 'undo-redo)
-
+    (setq evil-want-C-i-jump nil) ;; DONT TOUCH THIS: need to fix broken tab functionality
     ;; Enable this if you want C-u to scroll up, more like pure Vim
     ;(setq evil-want-C-u-scroll t)
 
+    ;; Set default state to Emacs state for all modes
+    (setq evil-default-state 'emacs)
+
     :config
-    (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
-    (evil-mode)
+    ;;(evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+    (evil-mode 1)
 
     ;; Configuring initial major mode for some modes
-    (evil-set-initial-state 'vterm-mode 'emacs))
-  
+    (evil-set-initial-state 'text-mode 'normal)
+    (evil-set-initial-state 'prog-mode 'normal))
+
 #+end_src
 ** Org-mode configuration
+*** general
 #+begin_src emacs-lisp
   (use-package org
     :ensure t
@@ -342,4 +347,14 @@ TODO: avy, consult, embark, wgrep?
     :config
     ;; Additional optional configuration for org-mode
     (setq org-startup-folded 'overview))
+#+end_src
+*** org-babel
+#+begin_src emacs-lisp
+  (use-package org-babel
+    :no-require
+    :config
+    (org-babel-do-load-languages 'org-babel-load-languages '((js      . t)
+                                                             (python  . t)
+                                                             (haskell . t)
+                                                             (java    . t))))
 #+end_src
