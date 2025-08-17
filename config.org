@@ -79,6 +79,11 @@
   ;; default windows font is hideous
   (when (eq system-type 'windows-nt)
     (set-face-attribute 'default nil :family "Consolas" :height 100 :width 'normal))
+
+  ;; disable tabs and set tab-with (number of spaces)
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 2)
+
 #+END_SRC
 * functions
 ** toggle-window-split
@@ -173,16 +178,29 @@
 #+end_src
 ** completion
 #+begin_src emacs-lisp
-
   (use-package vertico
     :ensure t
-    :init
-    (vertico-mode)
+    :bind (:map vertico-map
+           ("C-j" . vertico-next)
+           ("C-k" . vertico-previous)
+           ("C-f" . vertico-exit)
+           :map minibuffer-local-map
+           ("M-h" . backward-kill-word))
     :custom
-    (vertico-count 10))
+    (vertico-cycle t)
+    
+    :init
+    (vertico-mode))
 
+  (use-package savehist
+    :init
+    (savehist-mode))
+  
   (use-package marginalia
+    :after vertico
     :ensure t
+    :custom
+    (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :init
     (marginalia-mode))
 
@@ -196,28 +214,24 @@
 * keybinding packages
 ** evil
 #+begin_src emacs-lisp
-(use-package evil
-  :ensure t
-  :config (evil-mode 1))
+  (use-package evil
+    :ensure t
+    :config (evil-mode 1))
 
-(use-package evil-commentary
-  :ensure t
-  :diminish t
-  :config (evil-commentary-mode))
+  (use-package evil-commentary
+    :ensure t
+    :diminish t
+    :config (evil-commentary-mode))
 
-(use-package evil-surround
-  :ensure t
-  :diminish evil-surround-mode
-  :config (global-evil-surround-mode 1))
-  ;; (use-package company
-  ;;   :ensure t
-  ;;   :config
-  ;;   (add-hook 'prog-mode-hook 'global-company-mode))
+  (use-package evil-surround
+    :ensure t
+    :diminish evil-surround-mode
+    :config (global-evil-surround-mode 1))
 #+end_src
 
 ** general.el | which-key
 #+begin_src emacs-lisp
-  
+
   (use-package general
     :ensure t
     :config
@@ -247,8 +261,20 @@
     "q"  '(:ignore t              :which-key "quit")
     "qR" '(restart-emacs          :which-key "restart-emacs")))
 
-    ;;"p"  '(projectile-command-map :which-key "projectile")))
+    "p"  '(projectile-command-map :which-key "projectile")
 
+    ;; Files menu
+    "f"   '(:ignore t :which-key "files")
+      
+    ;; Custom file bindings
+    "ft"  '((lambda () (interactive) (find-file "~/org/todo.org"))
+            :which-key "todo.org")
+
+    "fn"  '((lambda () (interactive) (find-file "~/org/notes.org"))
+            :which-key "notes.org")
+
+    "fc" '((lambda () (interactive) (find-file "~/.config/emacs/config.org"))
+             :which-key "config.org")))
     ;; Example: Adding projectile-compile-project to leader key
     ;; (my-leader-def
     ;; :keymaps 'normal
@@ -267,23 +293,42 @@
 ** org
 #+begin_src emacs-lisp
 
-  (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
-  (define-key global-map "\C-c l" 'org-store-link)
-  (define-key global-map "\C-c a" 'org-agenda)
+  ;; (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+  ;; (define-key global-map "\C-c l" 'org-store-link)
+  ;; (define-key global-map "\C-c a" 'org-agenda)
 
-  (add-hook 'org-mode-hook 'org-indent-mode)
-  (add-hook 'org-mode-hook 'flyspell-mode)
+  ;; (add-hook 'org-mode-hook 'org-indent-mode)
+  ;; (add-hook 'org-mode-hook 'flyspell-mode)
 
-  ;; (setq org-log-done t)
+  ;; ;; (setq org-log-done t)
 
-  ;; org-agenda 
-  (setq org-agenda-files (list "~/usr/nts/todo/da-TODO.org"))
-  (setq org-default-notes-file "~/usr/nts/aa-MEMO.org")
+  ;; ;; org-agenda 
+  ;; (setq org-agenda-files (list "~/org/todo.org")
+  ;; (setq org-default-notes-file "~/org/notes.org")
 
-  ;; disable exporting of table of contents when exporting to pdf via latex
-  (setq org-latex-toc-command "")
-  (setq org-export-global-macros '(("toc" . "")))
-  (setq org-latex-custom-id-as-label nil)
+  ;; ;; disable exporting of table of contents when exporting to pdf via latex
+  ;; (setq org-latex-toc-command "")
+  ;; (setq org-export-global-macros '(("toc" . "")))
+  ;; (setq org-latex-custom-id-as-label nil)
+
+  (use-package org
+    :hook ((org-mode . org-indent-mode)
+           (org-mode . flyspell-mode))
+    :init
+    (setq org-agenda-files '("~/org/todo.org")
+          org-default-notes-file "~/org/notes.org"
+          org-latex-toc-command ""
+          org-export-global-macros '(("toc" . ""))
+          org-latex-custom-id-as-label nil)
+    ;; (setq org-log-done t) ;; Enable if you want timestamping on DONE
+    :config
+    (define-key global-map (kbd "C-c l") #'org-store-link)
+    (define-key global-map (kbd "C-c a") #'org-agenda))
+
+  (use-package evil
+    :after org
+    :config
+    (evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle))
 
 #+end_src
 
@@ -426,7 +471,14 @@
 
 
 #+end_src
-
+** python
+#+begin_src emacs-lisp
+  (use-package python-mode
+    :mode "\\.py\\'"
+    :ensure t
+    :config
+    (add-hook 'python-mode-hook 'company-mode))
+#+end_src
 ** ledger-mode
 #+begin_src emacs-lisp
   (use-package ledger-mode :ensure t)
@@ -443,6 +495,16 @@
 ** c/c++
 #+begin_src emacs-lisp
   (setq c-basic-offset 2)
+  
+** go
+#+begin_src emacs-lisp
+  (use-package go-mode
+    :mode "\\.go\\'"
+    :ensure t
+    :config
+    (add-hook 'go-mode-hook 'company-mode)
+    (add-hook 'before-save-hook 'gofmt-before-save))
+  
 #+end_src
 * Applications
 ** erc
@@ -485,11 +547,16 @@
 
 #+end_src
 
+** vterm
+#+begin_src emacs-lisp
+  (use-package vterm
+    :ensure t)
+#+end_src
 * IDE packages
 ** projectile
 #+begin_src emacs-lisp
-  (use-package projectile :ensure t)
-  (use-package treemacs-projectile :after (treemacs projectile) :ensure t)
+  ;; (use-package projectile :ensure t)
+  ;; (use-package treemacs-projectile :after (treemacs projectile) :ensure t)
 #+end_src
 
 ** autocompletion
@@ -510,7 +577,7 @@
 
     :hook
     (treemacs-mode . treemacs-project-follow-mode)
-    (treemacs=mode . (lambda () (evil-local-mode -1))))
+    (treemacs-mode . (lambda () (evil-local-mode -1))))
 
   (use-package treemacs-all-the-icons
     :ensure t
@@ -529,6 +596,7 @@
     :hook
     (python-mode  . eglot-ensure)
     (haskell-mode . eglot-ensure)
+    (go-mode      . eglot-ensure)
 
     :bind
     ;; (("<f7>" . dape-step-in)
@@ -559,7 +627,7 @@
     ;; (setq dape-buffer-window-arrangement 'gud)
     ;; (setq dape-info-hide-mode-line nil)
 
-    ;; Pulse source line (performance hit)
+x    ;; Pulse source line (performance hit)
     ;; (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
 
     ;; Showing inlay hints
