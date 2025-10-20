@@ -27,6 +27,13 @@ TODO: avy, consult, embark, wgrep?
 #+end_src
 
 * init
+** Enviroment settings
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize))
+#+end_src
 ** Basic settings
 #+begin_src emacs-lisp
 
@@ -215,11 +222,11 @@ TODO: avy, consult, embark, wgrep?
     (corfu-popupinfo-mode))
 
   ;; Make corfu popup come up in terminal overlay
-  (use-package corfu-terminal
-    :if (not (display-graphic-p))
-    :ensure t
-    :config
-    (corfu-terminal-mode))
+  ;; (use-package corfu-terminal
+  ;;   :if (not (display-graphic-p))
+  ;;   :ensure t
+  ;;   :config
+  ;;   (corfu-terminal-mode))
 
   ;; Fancy completion-at-point functions; there's too much in the cape package to
   ;; configure here; dive in when you're comfortable!
@@ -322,6 +329,33 @@ TODO: avy, consult, embark, wgrep?
 
   ;;(setq js-indent-level 2)
 #+end_src
+*** rust
+#+begin_src emacs-lisp
+  (use-package rust-mode :ensure t)
+  (use-package rustic
+    :ensure t
+    :config
+    ;; Use eglot instead of lsp-mode
+    (add-hook 'rustic-mode-hook #'eglot-ensure)
+
+    ;; Format on save
+    ;; (setq rustic-format-on-save t)
+    (setq rustic-indent-offset 2)
+    ;; Optional: improve shell integration for Cargo commands
+    (setq rustic-lsp-client 'eglot))
+
+  (use-package eglot
+    :ensure t
+    :config
+    ;; Tell eglot to use rust-analyzer
+    (add-to-list 'eglot-server-programs
+                 '(rustic-mode . ("rust-analyzer")))
+
+    ;; Optional: suppress some inline diagnostics if too noisy
+    (setq eglot-send-changes-idle-time 0.3)
+    (add-hook 'eglot-managed-mode-hook #'eldoc-mode))
+
+#+end_src
 ** Evil-mode configuration
 #+begin_src emacs-lisp
   ;; Evil: vi emulation
@@ -344,7 +378,13 @@ TODO: avy, consult, embark, wgrep?
 
     ;; Configuring initial major mode for some modes
     (evil-set-initial-state 'text-mode 'normal)
-    (evil-set-initial-state 'prog-mode 'normal))
+    (evil-set-initial-state 'prog-mode 'normal)
+    (evil-set-initial-state 'toml-mode 'normal)
+
+    ;; set indentation shift width
+    (setq evil-shift-width 2))
+
+
 
   (use-package evil-commentary
     :ensure t
@@ -373,4 +413,157 @@ TODO: avy, consult, embark, wgrep?
                                                              (python  . t)
                                                              (haskell . t)
                                                              (java    . t))))
+#+end_src
+*** org-roam
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :ensure t
+    :custom
+    (org-roam-directory (file-truename "~/org/roam/"))
+    (org-roam-db-location "~/org/roam/org-roam.db")
+    (org-roam-completion-everywhere t)
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n c" . org-roam-capture)
+           ("C-c n d" . org-roam-dailies-capture-today))
+    :config
+    (org-roam-setup))
+#+end_src
+*** org-roam-ui
+#+begin_src emacs-lisp
+  (use-package org-roam-ui
+    :after org-roam
+    :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start nil))
+#+end_src
+*** capture templates
+#+begin_src emacs-lisp
+  (setq org-roam-capture-templates
+        '(("r" "Reference" plain
+           "%?"
+           :if-new (file+head "references/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :reference:\n")
+           :unnarrowed t)
+
+          ("c" "Concept" plain
+           "%?"
+           :if-new (file+head "concepts/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :concept:\n")
+           :unnarrowed t)
+
+          ("p" "Project (General)" plain
+           "* Goals\n%?\n\n* Tasks\n\n* Notes\n"
+           :if-new (file+head "projects/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :project:\n")
+           :unnarrowed t)
+
+          ("s" "Software Project" plain
+           "* TODO Setup Repo\n* TODO First Milestone\n\n* Notes\n"
+           :if-new (file+head "projects/software/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :software:project:\n")
+           :unnarrowed t)
+
+          ("u" "Course" plain
+           "* Lectures\n* Assignments\n* Concepts\n"
+           :if-new (file+head "projects/courses/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :course:\n")
+           :unnarrowed t)
+
+          ("a" "Academic Paper" plain
+           "* Abstract\n%?\n* Introduction\n* Method\n* Results\n* Discussion\n"
+           :if-new (file+head "projects/papers/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :paper:\n#+bibliography: ~/Dropbox/org/roam/references.bib\n")
+           :unnarrowed t)
+
+          ("d" "Daily" entry
+           "* %<%H:%M> %?"
+           :if-new (file+head+olp "daily/%<%Y-%m-%d>.org"
+                                  "#+title: %<%Y-%m-%d>\n"
+                                  ("Journal")))
+          ("i" "Inbox" entry
+           "* TODO %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n"
+           :target (file+head "inbox.org" "#+title: Inbox\n"))))
+#+end_src
+*** attachments setup
+#+begin_src emacs-lisp
+    (setq org-attach-id-dir "~/org/roam/attachments/")
+
+    (defun narmer/org-attach-setup ()
+      "Ensure new roam notes have ID and attachment dir."
+      (org-id-get-create))
+
+    (add-hook 'org-roam-capture-new-node-hook #'narmer/org-attach-setup)
+#+end_src
+*** agenda setup
+#+begin_src emacs-lisp
+  (setq org-agenda-files '("~/org/roam/inbox.org"
+                           "~/org/roam/daily/"
+                           "~/org/roam/projects/"))
+
+#+end_src
+** mu4e configuration
+#+begin_src emacs-lisp
+
+  (use-package mu4e
+    :ensure nil ;; part of mu installation
+    :load-path "/usr/share/emacs/site-lisp/mu4e/" ;; adjust based on your OS/distribution
+    :defer 20
+    :config
+    (setq
+     ;; Basic maildir
+     mu4e-maildir "~/.mail/gmail"
+
+     ;; Gmail folders (note: Gmail uses labels, which mbsync maps to folders)
+     mu4e-sent-folder "/Sent Mail"
+     mu4e-drafts-folder "/Drafts"
+     mu4e-trash-folder "/Trash"
+     mu4e-refile-folder "/All Mail"
+
+     ;; Behavior
+     mu4e-get-mail-command "mbsync -a" ;; fetch mail via mbsync
+     mu4e-update-interval 300          ;; refresh every 5 minutes
+     mu4e-compose-signature-auto-include nil
+     mu4e-change-filenames-when-moving t ;; needed for mbsync
+
+     ;; Bookmarks
+     mu4e-bookmarks
+     '((:name "Unread messages" :query "flag:unread AND NOT flag:trashed" :key ?u)
+       (:name "Today's messages" :query "date:today..now" :key ?t)
+       (:name "Last 7 days" :query "date:7d..now" :key ?w)
+       (:name "Messages with attachments" :query "mime:application/*" :key ?a))
+
+     ;; Use smtpmail for sending
+     message-send-mail-function 'smtpmail-send-it
+     smtpmail-smtp-server "smtp.gmail.com"
+     smtpmail-smtp-service 587
+     smtpmail-stream-type 'starttls
+
+     ;; From address
+     user-mail-address "your_email@gmail.com"
+     user-full-name "Your Name"
+
+     ;; Better headers
+     mu4e-headers-date-format "%Y-%m-%d"
+     mu4e-headers-time-format "%H:%M"
+     mu4e-headers-fields
+     '((:date . 25)
+       (:flags . 6)
+       (:from . 22)
+       (:subject)))
+
+    ;; HTML viewing
+    (setq mu4e-view-prefer-html t
+          mu4e-html2text-command "w3m -T text/html")
+
+    ;; Org-mode integration
+    (require 'org-mu4e)
+
+    ;; Allow inline image viewing
+    (setq mu4e-view-show-images t
+          mu4e-view-image-max-width 800))
 #+end_src
