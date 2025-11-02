@@ -12,6 +12,28 @@ TODO: avy, consult, embark, wgrep?
 
   ;; Default frame configuration
   (setq frame-resize-pixelwise t)
+
+  ;; intelligently set default window geometry
+  (defun set-frame-size-according-to-resolution ()
+    (interactive)
+    (if window-system
+    (progn
+      ;; use 120 char wide window for largeish displays
+      ;; and smaller 80 column windows for smaller displays
+      ;; pick whatever numbers make sense for you
+      (if (> (x-display-pixel-width) 1280)
+  	    (add-to-list 'default-frame-alist (cons 'width 120))
+  	    (add-to-list 'default-frame-alist (cons 'width 80)))
+      ;; for the height, subtract a couple hundred pixels
+      ;; from the screen height (for panels, menubars and
+      ;; whatnot), then divide by the height of a char to
+      ;; get the height we want
+      (add-to-list 'default-frame-alist 
+  	  (cons 'height (/ (- (x-display-pixel-height) 200)
+  			      (frame-char-height)))))))
+
+  (set-frame-size-according-to-resolution)
+
   ;;(setq default-frame-alist '((fullscreen . maximized)
   ;;
   ;;			     ;; You can turn off scroll bars by uncommenting these lines:
@@ -24,6 +46,7 @@ TODO: avy, consult, embark, wgrep?
   ;;			     (ns-appearance . dark)
   ;;			     (ns-transparent-titlebar . t)))
   ;;
+
 #+end_src
 
 * init
@@ -107,7 +130,7 @@ TODO: avy, consult, embark, wgrep?
 
   ;; Misc. UI tweaks
   ;;(blink-cursor-mode -1)                                ; Steady cursor
-  (pixel-scroll-precision-mode)                         ; Smooth scrolling
+  (pixel-scroll-precision-mode)                           ; Smooth scrolling
 
 #+end_src
 ** Text editing settings
@@ -125,11 +148,8 @@ TODO: avy, consult, embark, wgrep?
   ;; (setopt indent-tabs-mode nil)
   ;; (setopt tab-width 4)
 #+end_src
-** Icons, themes, and fonts
+** Icons, themes, and fonts, and dashboard
 #+begin_src emacs-lisp
-  ;;(use-package emacs
-  ;;  :config
-  ;;  (load-theme 'modus-vivendi))          ; for light theme, use modus-operandi
 
   (use-package doom-themes
     :ensure t
@@ -138,8 +158,13 @@ TODO: avy, consult, embark, wgrep?
 
   (use-package all-the-icons
     :ensure t)
-#+end_src
 
+  (use-package dashboard
+    :ensure t
+    :config
+    (dashboard-setup-startup-hook))
+
+#+end_src
 ** Discovery aids
 #+begin_src emacs-lisp
   (use-package which-key
@@ -288,73 +313,26 @@ TODO: avy, consult, embark, wgrep?
   ;; Tell Emacs to prefer the treesitter mode
   ;; You'll want to run the command `M-x treesit-install-language-grammar' before editing.
   (setq major-mode-remap-alist
-	'((yaml-mode . yaml-ts-mode)
-	  (bash-mode . bash-ts-mode)
-	  (js2-mode . js-ts-mode)
-	  (typescript-mode . typescript-ts-mode)
-	  (json-mode . json-ts-mode)
-	  (css-mode . css-ts-mode)
-	  (python-mode . python-ts-mode)))
+  	'((yaml-mode . yaml-ts-mode)
+  	  (bash-mode . bash-ts-mode)
+  	  (js2-mode . js-ts-mode)
+  	  (typescript-mode . typescript-ts-mode)
+  	  (json-mode . json-ts-mode)
+  	  (css-mode . css-ts-mode)
+  	  (python-mode . python-ts-mode)))
 
 
   ;; Eglot, the built-in LSP client for Emacs
 
   (use-package eglot
-  ;; no :ensure t here because it's built-in
-
-  ;; Configure hooks to automatically turn-on eglot for selected modes
-  :hook ((python-ts-mode . eglot-ensure)
-         (c-mode         . eglot-ensure)
-         (c++-mode       . eglot-ensure))
-
-  ;;:custom
-  ;;(eglot-send-changes-idle-time 0.1)
-  ;;(eglot-extend-to-xref t)              ; activate Eglot in referenced non-project files
-
-  :config
-  ;;(fset #'jsonrpc--log-event #'ignore)  ; massive perf boost---don't log every event
-  ;; Sometimes you need to tell Eglot where to find the language server
-  ; (add-to-list 'eglot-server-programs
-  ;              '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
-  )
-
-#+end_src
-*** javascript
-#+begin_src emacs-lisp
-  (use-package js-ts-mode
-    :ensure nil
-    :mode "\\.js\\'"
-    :hook (js-ts-mode . (lambda ()
-                          (setq js-indent-level 2))))
-
-  ;;(setq js-indent-level 2)
-#+end_src
-*** rust
-#+begin_src emacs-lisp
-  (use-package rust-mode :ensure t)
-  (use-package rustic
-    :ensure t
+    :hook ((python-ts-mode . eglot-ensure)
+           (c-mode . eglot-ensure)
+           (c++-mode . eglot-ensure))
     :config
-    ;; Use eglot instead of lsp-mode
-    (add-hook 'rustic-mode-hook #'eglot-ensure)
-
-    ;; Format on save
-    ;; (setq rustic-format-on-save t)
-    (setq rustic-indent-offset 2)
-    ;; Optional: improve shell integration for Cargo commands
-    (setq rustic-lsp-client 'eglot))
-
-  (use-package eglot
-    :ensure t
-    :config
-    ;; Tell eglot to use rust-analyzer
-    (add-to-list 'eglot-server-programs
-                 '(rustic-mode . ("rust-analyzer")))
-
-    ;; Optional: suppress some inline diagnostics if too noisy
+    (add-to-list 'eglot-server-programs '(java-mode . ("jdtls")))
+    (add-to-list 'eglot-server-programs '(rustic-mode . ("rust-analyzer")))
     (setq eglot-send-changes-idle-time 0.3)
     (add-hook 'eglot-managed-mode-hook #'eldoc-mode))
-
 #+end_src
 ** Evil-mode configuration
 #+begin_src emacs-lisp
@@ -392,6 +370,7 @@ TODO: avy, consult, embark, wgrep?
     :config (evil-commentary-mode))
 
 #+end_src
+* stage 0 
 ** Org-mode configuration
 *** general
 #+begin_src emacs-lisp
@@ -567,3 +546,205 @@ TODO: avy, consult, embark, wgrep?
     (setq mu4e-view-show-images t
           mu4e-view-image-max-width 800))
 #+end_src
+* stage 1 
+** Project and File Management 
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :diminish projectile-mode
+    :config
+    (projectile-mode +1)
+    (setq projectile-project-search-path '("~/src/"))
+    (setq projectile-completion-system 'default)
+    :bind-keymap
+    ("C-c p" . projectile-command-map))
+#+end_src
+** Code Navigation and Search 
+#+begin_src emacs-lisp
+  (use-package consult
+    :ensure t
+    :bind (("C-s" . consult-line)
+           ("C-c f" . consult-ripgrep)
+           ("C-x b" . consult-buffer)
+           ("M-y" . consult-yank-pop)))
+
+  (use-package embark
+    :ensure t
+    :bind (("C-." . embark-act)
+           ("C-;" . embark-dwim))
+    :config
+    (setq prefix-help-command #'embark-prefix-help-command))
+
+  (use-package embark-consult
+    :ensure t
+    :after (embark consult)
+    :hook (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+** Linting, Formatting, and Diagnostics
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode))
+
+  (use-package apheleia
+    :ensure t
+    :config
+    (apheleia-global-mode +1))
+#+end_src
+** Debugging
+#+begin_src emacs-lisp
+  (use-package dap-mode
+    :ensure t
+    :after eglot
+    :config
+    (dap-auto-configure-mode)
+    (require 'dap-python)
+    (require 'dap-gdb-lldb)
+    (require 'dap-java))
+
+  ;; You may also wish to install:
+  ;; debugpy for Python (pip install debugpy)
+  ;; vscode-cpptools or lldb-vscode for C/C++
+  ;; jdtls for Java (usually provided with your LSP)
+#+end_src
+** Version control
+#+begin_src emacs-lisp
+  (use-package magit
+    :ensure t
+    :bind (("C-x g" . magit-status)))
+
+  (use-package diff-hl
+    :ensure t
+    :hook ((prog-mode . diff-hl-mode)
+           (magit-post-refresh . diff-hl-magit-post-refresh)))
+#+end_src
+** Language configuration
+*** C/C++
+#+begin_src emacs-lisp
+  (use-package c-ts-mode
+    :ensure nil
+    :hook ((c-mode c++-mode c-ts-mode c++-ts-mode) . eglot-ensure)
+    :config
+    (setq c-basic-offset 2))
+  ;; Install clangd on your system (sudo apt install clangd or equivalent).
+#+end_src
+*** Python
+#+begin_src emacs-lisp
+  (use-package python
+    :ensure nil
+    :hook (python-ts-mode . (lambda ()
+                              (setq python-indent-offset 2)
+                              (eglot-ensure)))
+    :config
+    (setq python-shell-interpreter "python3"))
+
+  (use-package blacken
+    :ensure t
+    :hook (python-mode . blacken-mode))
+#+end_src
+*** Java
+#+begin_src emacs-lisp
+  (use-package gradle-mode :ensure t)
+#+end_src
+*** Javascript
+#+begin_src emacs-lisp
+  (use-package js-ts-mode
+    :ensure nil
+    :mode "\\.js\\'"
+    :hook (js-ts-mode . (lambda ()
+                          (setq js-indent-level 2))))
+
+  ;;(setq js-indent-level 2)
+#+end_src
+*** Rust
+#+begin_src emacs-lisp
+  (use-package rust-mode :ensure t)
+  (use-package rustic
+    :ensure t
+    :config
+    ;; Use eglot instead of lsp-mode
+    (add-hook 'rustic-mode-hook #'eglot-ensure)
+
+    ;; Format on save
+    ;; (setq rustic-format-on-save t)
+    (setq rustic-indent-offset 2)
+    ;; Optional: improve shell integration for Cargo commands
+    (setq rustic-lsp-client 'eglot))
+#+end_src
+** Terminal and Shell Integration
+#+begin_src emacs-lisp
+  (use-package vterm
+    :ensure t
+    :commands vterm
+    :config
+    (setq vterm-shell "/bin/bash"))
+
+  ;; You can bind a shortcut (e.g., C-c t) to open a terminal in the project root. 
+#+end_src
+** UI and QoL Enhancements
+#+begin_src emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :bind (("C-x t t" . treemacs))
+    :config
+    (setq treemacs-is-never-other-window t))
+
+  (use-package breadcrumb
+    :ensure t
+    :hook (prog-mode . breadcrumb-mode))
+
+  (use-package undo-tree
+    :ensure t
+    :init
+    (global-undo-tree-mode))
+#+end_src
+** Snippets and Templates
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config
+    (yas-global-mode 1))
+
+  (use-package yasnippet-snippets
+    :ensure t)
+#+end_src
+** Performance Optimizations
+#+begin_src emacs-lisp
+  (setq read-process-output-max (* 4 1024 1024)) ;; 4MB
+  (setq gc-cons-threshold (* 100 1024 1024))
+#+end_src
+** Global Custom Keybindings
+#+begin_src emacs-lisp
+  ;; -------------------------------------------------------------------
+  ;; Global Custom Keybindings
+  ;; -------------------------------------------------------------------
+  ;; These bindings provide rapid access to frequently used development
+  ;; tools and commands across all major modes.  They do not conflict
+  ;; with standard Emacs conventions (`C-c` followed by a lowercase key
+  ;; is reserved for user use).
+
+  ;; Open an integrated terminal (vterm)
+  (global-set-key (kbd "C-c t") #'vterm)
+
+  ;; Launch Magit status interface for Git version control
+  (global-set-key (kbd "C-c g") #'magit-status)
+
+  ;; Search the current project or directory using Consult + Ripgrep
+  (global-set-key (kbd "C-c s") #'consult-ripgrep)
+
+  ;; Rename symbol under cursor via Eglot LSP interface
+  (global-set-key (kbd "C-c i") #'eglot-rename)
+
+  ;; Switch buffers using Consult’s enhanced completion
+  (global-set-key (kbd "C-c b") #'consult-buffer)
+
+  ;; Start a debugging session using DAP (Debug Adapter Protocol)
+  (global-set-key (kbd "C-c d") #'dap-debug)
+
+  ;; Optional: Quick access to file finder (consult-find or project-find-file)
+  (global-set-key (kbd "C-c f") #'consult-find)
+
+  ;; Optional: Toggle file tree / sidebar if using Treemacs or Neotree
+  (global-set-key (kbd "C-c e") #'treemacs) ;; uncomment if applicable
+
+#+end_src 
