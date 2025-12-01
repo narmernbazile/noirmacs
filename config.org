@@ -165,6 +165,20 @@ TODO: avy, consult, embark, wgrep?
     (dashboard-setup-startup-hook))
 
 #+end_src
+** Font configuration
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil
+    :family "JetBrains Mono NL"
+    :height 105)   ;; height = 1/10 pt; 120 ≈ 12pt
+
+  ;;(set-face-attribute 'variable-pitch nil
+  ;;  :family "IBM Plex Serif"
+  ;;  :height 140)
+
+  (set-face-attribute 'fixed-pitch nil
+    :family "JetBrains Mono"
+    :height 120)
+#+end_src
 ** Discovery aids
 #+begin_src emacs-lisp
   (use-package which-key
@@ -358,6 +372,7 @@ TODO: avy, consult, embark, wgrep?
     (evil-set-initial-state 'text-mode 'normal)
     (evil-set-initial-state 'prog-mode 'normal)
     (evil-set-initial-state 'toml-mode 'normal)
+    (evil-set-initial-state 'json-ts-mode 'normal)
 
     ;; set indentation shift width
     (setq evil-shift-width 2))
@@ -401,72 +416,55 @@ TODO: avy, consult, embark, wgrep?
     (org-roam-directory (file-truename "~/org/roam/"))
     (org-roam-db-location "~/org/roam/org-roam.db")
     (org-roam-completion-everywhere t)
+    (setq org-roam-capture-templates-contexts nil)
+    (setq org-roam-capture-templates-default '("c"))
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert)
            ("C-c n c" . org-roam-capture)
+  	 ("C-c n b" . narmer/org-roam-capture-from-citar)
            ("C-c n d" . org-roam-dailies-capture-today))
     :config
     (org-roam-setup))
 #+end_src
 *** org-roam-ui
 #+begin_src emacs-lisp
-  (use-package org-roam-ui
-    :after org-roam
-    :hook (after-init . org-roam-ui-mode)
-    :config
-    (setq org-roam-ui-sync-theme t
-          org-roam-ui-follow t
-          org-roam-ui-update-on-save t
-          org-roam-ui-open-on-start nil))
+  ;; (use-package org-roam-ui
+  ;;   :ensure t
+  ;;   :after org-roam
+  ;;   :commands org-roam-ui-mode
+  ;;   :hook (after-init . org-roam-ui-mode)
+  ;;   :config
+  ;;   (setq org-roam-ui-sync-theme t
+  ;;         org-roam-ui-follow t
+  ;;         org-roam-ui-update-on-save t
+  ;;         org-roam-ui-open-on-start nil))
 #+end_src
 *** capture templates
 #+begin_src emacs-lisp
   (setq org-roam-capture-templates
-        '(("r" "Reference" plain
+        '(("c" "Concept Note"
+           plain
            "%?"
-           :if-new (file+head "references/${slug}.org"
-                              "#+title: ${title}\n#+filetags: :reference:\n")
+           :target (file+head "concepts/${slug}.org"
+                              "#+TITLE: ${title}\n")
+           :immediate-finish nil
            :unnarrowed t)
 
-          ("c" "Concept" plain
-           "%?"
-           :if-new (file+head "concepts/${slug}.org"
-                              "#+title: ${title}\n#+filetags: :concept:\n")
-           :unnarrowed t)
-
-          ("p" "Project (General)" plain
-           "* Goals\n%?\n\n* Tasks\n\n* Notes\n"
-           :if-new (file+head "projects/${slug}.org"
-                              "#+title: ${title}\n#+filetags: :project:\n")
-           :unnarrowed t)
-
-          ("s" "Software Project" plain
-           "* TODO Setup Repo\n* TODO First Milestone\n\n* Notes\n"
-           :if-new (file+head "projects/software/${slug}.org"
-                              "#+title: ${title}\n#+filetags: :software:project:\n")
-           :unnarrowed t)
-
-          ("u" "Course" plain
-           "* Lectures\n* Assignments\n* Concepts\n"
-           :if-new (file+head "projects/courses/${slug}.org"
-                              "#+title: ${title}\n#+filetags: :course:\n")
-           :unnarrowed t)
-
-          ("a" "Academic Paper" plain
-           "* Abstract\n%?\n* Introduction\n* Method\n* Results\n* Discussion\n"
-           :if-new (file+head "projects/papers/${slug}.org"
-                              "#+title: ${title}\n#+filetags: :paper:\n#+bibliography: ~/Dropbox/org/roam/references.bib\n")
-           :unnarrowed t)
-
-          ("d" "Daily" entry
-           "* %<%H:%M> %?"
-           :if-new (file+head+olp "daily/%<%Y-%m-%d>.org"
-                                  "#+title: %<%Y-%m-%d>\n"
-                                  ("Journal")))
-          ("i" "Inbox" entry
-           "* TODO %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n"
-           :target (file+head "inbox.org" "#+title: Inbox\n"))))
+  	("p" "Project Note"
+  	plain
+  	"%?"
+  	:target (file+head "projects/${slug}.org"
+  			    "#+TITLE: ${title}\n")
+  	:unnarrowed t)
+  	;; ("r" "Reference Note" plain "%?"
+          ;;  :target (file+head "references/${citekey}.org"
+          ;;                     "#+TITLE: ${title}\n#+AUTHOR: \n#+CITE: \n#+FILE: \n")
+          ;;  :unnarrowed t)
+  	("l" "Literature Note" plain "%?"
+           :target (file+head "literature/${slug}.org"
+                              "#+TITLE: ${title}\n#+AUTHOR: \n#+CITE: \n#+FILE: \n")
+           :unnarrowed t)))
 #+end_src
 *** attachments setup
 #+begin_src emacs-lisp
@@ -598,9 +596,9 @@ TODO: avy, consult, embark, wgrep?
     :after eglot
     :config
     (dap-auto-configure-mode)
-    (require 'dap-python)
-    (require 'dap-gdb-lldb)
-    (require 'dap-java))
+    (ignore-errors (require 'dap-python))
+    (ignore-errors (require 'dap-gdb-lldb))
+    (ignore-errors (require 'dap-java)))
 
   ;; You may also wish to install:
   ;; debugpy for Python (pip install debugpy)
@@ -646,16 +644,54 @@ TODO: avy, consult, embark, wgrep?
 #+begin_src emacs-lisp
   (use-package gradle-mode :ensure t)
 #+end_src
-*** Javascript
+*** JavaScript / Node.js
 #+begin_src emacs-lisp
+  ;; ------------------------------
+  ;; JavaScript / Node.js Development
+  ;; ------------------------------
+
   (use-package js-ts-mode
     :ensure nil
-    :mode "\\.js\\'"
-    :hook (js-ts-mode . (lambda ()
-                          (setq js-indent-level 2))))
+    :mode "\\.js\\'")
 
-  ;;(setq js-indent-level 2)
+  ;; Use js-ts-mode for all JS files (already remapped in major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cjs\\'"  . js-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'"  . js-ts-mode))
+
+  ;; Prefer tsserver for JS/TS LSP support in Eglot
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '((js-ts-mode tsx-ts-mode typescript-ts-mode)
+                   . ("typescript-language-server" "--stdio"))))
+
+  ;; Basic indentation and formatting behaviour
+  (setq js-indent-level 2)
+  (setq typescript-indent-level 2)
+
+  ;; NPM scripts helper
+  (use-package npm-mode
+    :ensure t
+    :hook ((js-ts-mode . npm-mode)
+           (typescript-ts-mode . npm-mode)))
+
+  ;; Auto-formatting via Prettier (locally if available)
+  (use-package apheleia
+    :ensure t
+    :config
+    (add-to-list 'apheleia-formatters
+                 '(prettier-local . ("node_modules/.bin/prettier" "--stdin-filepath" filepath)))
+    (add-to-list 'apheleia-mode-alist
+                 '(js-ts-mode . prettier-local))
+    (add-to-list 'apheleia-mode-alist
+                 '(typescript-ts-mode . prettier-local))
+    (apheleia-global-mode +1))
+
+  ;; Add helpful CAPE backends for JS
+  ;; (file and dabbrev are already loaded; avoid duplicates)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
 #+end_src
+
 *** Rust
 #+begin_src emacs-lisp
   (use-package rust-mode :ensure t)
@@ -736,7 +772,7 @@ TODO: avy, consult, embark, wgrep?
   (global-set-key (kbd "C-c i") #'eglot-rename)
 
   ;; Switch buffers using Consult’s enhanced completion
-  (global-set-key (kbd "C-c b") #'consult-buffer)
+  ;;(global-set-key (kbd "C-c b") #'consult-buffer)
 
   ;; Start a debugging session using DAP (Debug Adapter Protocol)
   (global-set-key (kbd "C-c d") #'dap-debug)
@@ -748,3 +784,51 @@ TODO: avy, consult, embark, wgrep?
   (global-set-key (kbd "C-c e") #'treemacs) ;; uncomment if applicable
 
 #+end_src 
+* stage 2
+** Citation Management (interop with Zotero)
+#+begin_src emacs-lisp
+  (use-package citar
+    :ensure t
+    :custom
+    ;; the core files for your citation workflow
+    (citar-bibliography '("~/usr/library/library.bib"))
+
+    ;; where Citar should search for PDFs
+    (citar-library-paths '("~/usr/library/"))
+
+    ;; tells Citar how to find local files from Zotero
+    (citar-file-open-functions
+     '((t . find-file))) ;; you may later upgrade this to your PDF reader of choice
+
+    ;; ensures completion sources work everywhere
+    (citar-templates
+     '((note . "* ${title}\n:PROPERTIES:\n:Author: ${author}\n:Year: ${year}\n:Custom_ID: ${=key=}\n:END:\n\n")
+       (main . "${author editor} (${year}) · *${title}*")
+       (suffix . "  ${=key=}")
+       (preview . "${author editor}, *${title}*, ${year}.")))
+
+    :bind (("C-c b b" . citar-open)
+           ("C-c b o" . org-open-at-point)
+           ("C-c b c" . citar-insert-citation)
+           ("C-c b r" . citar-open-ref)
+           ("C-c b n" . citar-create-note)))
+
+#+end_src
+** Org-cite Integration
+#+begin_src emacs-lisp
+  (use-package oc
+    :after org
+    :config
+    (setq org-cite-insert-processor 'citar
+          org-cite-follow-processor 'citar
+          org-cite-activate-processor 'citar))
+#+end_src
+** citar-org-roam
+#+begin_src emacs-lisp
+  (use-package citar-org-roam
+    :ensure t
+    :custom
+    (citar-org-roam-mode t)
+    (citar-org-roam-subdir "references"))
+
+#+end_src
