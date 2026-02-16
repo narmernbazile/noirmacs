@@ -26,7 +26,7 @@
 
   ;; minimal ui
   (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-  ;;(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
   (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
   (setq inhibit-startup-message t)   ;; omit default startup screen
@@ -122,7 +122,7 @@
   (require 'package)
   (setq package-enable-at-startup nil)
   (setq package-archives '(;;("org"   . "http://orgmode.org/elpa/")
-                           ("gnu"   . "http://elpa.gnu.org/packages/")
+                           ("gnu"   . "https://elpa.gnu.org/packages/")
                            ("melpa" . "https://melpa.org/packages/")))
   (package-initialize)
 
@@ -259,7 +259,7 @@
     "oe" '(eshell    :which-key "eshell")
 
     "q"  '(:ignore t              :which-key "quit")
-    "qR" '(restart-emacs          :which-key "restart-emacs")))
+    "qR" '(restart-emacs          :which-key "restart-emacs")
 
     "p"  '(projectile-command-map :which-key "projectile")
 
@@ -351,7 +351,7 @@
     :ensure t
     :custom
     (org-roam-directory "~/usr/nts")
-    (org-roam-completion-everwhere t)
+    (org-roam-completion-everywhere t)
     (org-roam-dailies-capture-templates
       '(("d" "default" entry "* %<%I:%M %p>: %?"
          :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
@@ -495,7 +495,7 @@
 ** c/c++
 #+begin_src emacs-lisp
   (setq c-basic-offset 2)
-  
+#+end_src 
 ** go
 #+begin_src emacs-lisp
   (use-package go-mode
@@ -605,6 +605,7 @@
     )
 
   (use-package dape
+    :ensure t
     :preface
     ;; By default dape shares the same keybinding prefix as `gud'
     ;; If you do not want to use any prefix, set it to nil.
@@ -627,7 +628,7 @@
     ;; (setq dape-buffer-window-arrangement 'gud)
     ;; (setq dape-info-hide-mode-line nil)
 
-x    ;; Pulse source line (performance hit)
+    ;; Pulse source line (performance hit)
     ;; (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
 
     ;; Showing inlay hints
