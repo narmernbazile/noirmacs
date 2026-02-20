@@ -506,6 +506,13 @@
     (add-hook 'before-save-hook 'gofmt-before-save))
   
 #+end_src
+** nix
+#+begin_src emacs-lisp
+  (use-package nix-mode
+  :ensure t
+  :mode ("\\.nix\\'" . nix-mode)
+  :hook (nix-mode . (lambda () (setq tab-width 2))))
+#+end_src
 * Applications
 ** erc
 #+begin_src emacs-lisp
@@ -649,3 +656,5 @@
     :config
     (repeat-mode))
 #+end_src
+
+
