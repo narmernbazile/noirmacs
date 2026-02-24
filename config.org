@@ -9,30 +9,41 @@ TODO: avy, consult, embark, wgrep?
 * early init
 #+begin_src emacs-lisp
   (tool-bar-mode -1) ;; All these tools are in the menu-bar anyway
+;; Disable tool-bar (GUI buttons)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+
+;; Disable scroll bars
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+
+;; Disable menu bar
+(when (fboundp 'menu-bar-mode)
+  (menu-bar-mode -1))
 
   ;; Default frame configuration
   (setq frame-resize-pixelwise t)
 
   ;; intelligently set default window geometry
-  (defun set-frame-size-according-to-resolution ()
-    (interactive)
-    (if window-system
-    (progn
-      ;; use 120 char wide window for largeish displays
-      ;; and smaller 80 column windows for smaller displays
-      ;; pick whatever numbers make sense for you
-      (if (> (x-display-pixel-width) 1280)
-  	    (add-to-list 'default-frame-alist (cons 'width 120))
-  	    (add-to-list 'default-frame-alist (cons 'width 80)))
-      ;; for the height, subtract a couple hundred pixels
-      ;; from the screen height (for panels, menubars and
-      ;; whatnot), then divide by the height of a char to
-      ;; get the height we want
-      (add-to-list 'default-frame-alist 
-  	  (cons 'height (/ (- (x-display-pixel-height) 200)
-  			      (frame-char-height)))))))
+  ;;(defun set-frame-size-according-to-resolution ()
+  ;;  (interactive)
+  ;;  (if window-system
+  ;;  (progn
+  ;;    ;; use 120 char wide window for largeish displays
+  ;;    ;; and smaller 80 column windows for smaller displays
+  ;;    ;; pick whatever numbers make sense for you
+  ;;    (if (> (x-display-pixel-width) 1280)
+  ;; 	    (add-to-list 'default-frame-alist (cons 'width 120))
+  ;;	    (add-to-list 'default-frame-alist (cons 'width 80)))
+  ;;    ;; for the height, subtract a couple hundred pixels
+  ;;    ;; from the screen height (for panels, menubars and
+  ;;    ;; whatnot), then divide by the height of a char to
+  ;;    ;; get the height we want
+  ;;    (add-to-list 'default-frame-alist 
+  ;; 	  (cons 'height (/ (- (x-display-pixel-height) 200)
+  ;; 			      (frame-char-height))))))
 
-  (set-frame-size-according-to-resolution)
+  ;;(set-frame-size-according-to-resolution)
 
   ;;(setq default-frame-alist '((fullscreen . maximized)
   ;;
@@ -159,10 +170,11 @@ TODO: avy, consult, embark, wgrep?
   (use-package all-the-icons
     :ensure t)
 
-  (use-package dashboard
-    :ensure t
-    :config
-    (dashboard-setup-startup-hook))
+;; (use-package dashboard
+;;   :ensure t
+;;   :after (all-the-icons)
+;;   :config
+;;   (dashboard-setup-startup-hook))
 
 #+end_src
 ** Font configuration
@@ -356,7 +368,7 @@ TODO: avy, consult, embark, wgrep?
 
     :init
     (setq evil-respect-visual-line-mode t)
-    (setq evil-undo-system 'undo-redo)
+    (setq evil-undo-system 'undo-tree)
     (setq evil-want-C-i-jump nil) ;; DONT TOUCH THIS: need to fix broken tab functionality
     ;; Enable this if you want C-u to scroll up, more like pure Vim
     ;(setq evil-want-C-u-scroll t)
@@ -373,6 +385,7 @@ TODO: avy, consult, embark, wgrep?
     (evil-set-initial-state 'prog-mode 'normal)
     (evil-set-initial-state 'toml-mode 'normal)
     (evil-set-initial-state 'json-ts-mode 'normal)
+    (evil-set-initial-state 'fundamental-mode 'normal)
 
     ;; set indentation shift width
     (setq evil-shift-width 2))
@@ -400,13 +413,13 @@ TODO: avy, consult, embark, wgrep?
 #+end_src
 *** org-babel
 #+begin_src emacs-lisp
-  (use-package org-babel
-    :no-require
-    :config
-    (org-babel-do-load-languages 'org-babel-load-languages '((js      . t)
-                                                             (python  . t)
-                                                             (haskell . t)
-                                                             (java    . t))))
+(with-eval-after-load 'org
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((js      . t)
+     (python  . t)
+     (haskell . t)
+     (java    . t))))
 #+end_src
 *** org-roam
 #+begin_src emacs-lisp
@@ -416,16 +429,16 @@ TODO: avy, consult, embark, wgrep?
     (org-roam-directory (file-truename "~/org/roam/"))
     (org-roam-db-location "~/org/roam/org-roam.db")
     (org-roam-completion-everywhere t)
+    :config
     (setq org-roam-capture-templates-contexts nil)
     (setq org-roam-capture-templates-default '("c"))
+    (org-roam-setup)
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert)
            ("C-c n c" . org-roam-capture)
-  	 ("C-c n b" . narmer/org-roam-capture-from-citar)
-           ("C-c n d" . org-roam-dailies-capture-today))
-    :config
-    (org-roam-setup))
+  	   ("C-c n b" . narmer/org-roam-capture-from-citar)
+           ("C-c n d" . org-roam-dailies-capture-today)))
 #+end_src
 *** org-roam-ui
 #+begin_src emacs-lisp
@@ -485,64 +498,123 @@ TODO: avy, consult, embark, wgrep?
 #+end_src
 ** mu4e configuration
 #+begin_src emacs-lisp
-
   (use-package mu4e
-    :ensure nil ;; part of mu installation
-    :load-path "/usr/share/emacs/site-lisp/mu4e/" ;; adjust based on your OS/distribution
-    :defer 20
-    :config
-    (setq
-     ;; Basic maildir
-     mu4e-maildir "~/.mail/gmail"
+  :ensure nil ;; part of mu installation
+  ;; :load-path "/run/current-system/sw/share/emacs/site-lisp/elpa/mu4e-1.12.13/"
+  ;; :load-path "/usr/share/emacs/site-lisp/mu4e/" ;; adjust based on your OS/distribution
+  :defer 20
+  :init (require 'mu4e)
+  :config
+  (setq
+      ;; Basic maildir
+      mu4e-maildir "~/mail/gmail"
 
-     ;; Gmail folders (note: Gmail uses labels, which mbsync maps to folders)
-     mu4e-sent-folder "/Sent Mail"
-     mu4e-drafts-folder "/Drafts"
-     mu4e-trash-folder "/Trash"
-     mu4e-refile-folder "/All Mail"
+      ;; Gmail folders (note: Gmail uses labels, which mbsync maps to folders)
+      mu4e-sent-folder "/gmail/Sent Mail"
+      mu4e-drafts-folder "gmail/Drafts"
+      mu4e-trash-folder "/gmail/Trash"
+      mu4e-refile-folder "/gmail/All Mail"
 
-     ;; Behavior
-     mu4e-get-mail-command "mbsync -a" ;; fetch mail via mbsync
-     mu4e-update-interval 300          ;; refresh every 5 minutes
-     mu4e-compose-signature-auto-include nil
-     mu4e-change-filenames-when-moving t ;; needed for mbsync
+      ;; Behavior
+      mu4e-get-mail-command "mbsync -a" ;; fetch mail via mbsync
+      mu4e-update-interval 300          ;; refresh every 5 minutes
+      mu4e-compose-signature-auto-include nil
+      mu4e-change-filenames-when-moving t ;; needed for mbsync
 
-     ;; Bookmarks
-     mu4e-bookmarks
-     '((:name "Unread messages" :query "flag:unread AND NOT flag:trashed" :key ?u)
-       (:name "Today's messages" :query "date:today..now" :key ?t)
-       (:name "Last 7 days" :query "date:7d..now" :key ?w)
-       (:name "Messages with attachments" :query "mime:application/*" :key ?a))
+      ;; Bookmarks
+      mu4e-bookmarks
+      '((:name "Unread messages" :query "flag:unread AND NOT flag:trashed" :key ?u)
+      (:name "Today's messages" :query "date:today..now" :key ?t)
+      (:name "Last 7 days" :query "date:7d..now" :key ?w)
+      (:name "Messages with attachments" :query "mime:application/*" :key ?a))
 
-     ;; Use smtpmail for sending
-     message-send-mail-function 'smtpmail-send-it
-     smtpmail-smtp-server "smtp.gmail.com"
-     smtpmail-smtp-service 587
-     smtpmail-stream-type 'starttls
+      ;; Use smtpmail for sending
+      ;; message-send-mail-function 'smtpmail-send-it
+      smtpmail-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-service 587
+      smtpmail-stream-type 'starttls
 
-     ;; From address
-     user-mail-address "your_email@gmail.com"
-     user-full-name "Your Name"
+      ;; From address
+      user-mail-address "narmernbazile@gmail.com"
+      user-full-name "Narmer Noir Bazile"
 
-     ;; Better headers
-     mu4e-headers-date-format "%Y-%m-%d"
-     mu4e-headers-time-format "%H:%M"
-     mu4e-headers-fields
-     '((:date . 25)
-       (:flags . 6)
-       (:from . 22)
-       (:subject)))
+      ;; Better headers
+      mu4e-headers-date-format "%Y-%m-%d"
+      mu4e-headers-time-format "%H:%M"
+      mu4e-headers-fields
+      '((:date . 25)
+      (:flags . 6)
+      (:from . 22)
+      (:subject)))
 
-    ;; HTML viewing
-    (setq mu4e-view-prefer-html t
+  ;; HTML viewing
+  (setq mu4e-view-prefer-html t
           mu4e-html2text-command "w3m -T text/html")
 
-    ;; Org-mode integration
-    (require 'org-mu4e)
+  ;; Org-mode integration
+  ;; (require 'org-mu4e)
 
-    ;; Allow inline image viewing
-    (setq mu4e-view-show-images t
+  ;; Allow inline image viewing
+  (setq mu4e-view-show-images t
           mu4e-view-image-max-width 800))
+
+  (defun my-smtpmail-send-it-with-gpg ()
+  "Decrypt Gmail App Password via GPG and send email."
+  (let ((password (string-trim
+                  (shell-command-to-string
+                      "gpg --quiet --for-your-eyes-only --no-tty -d ~/.mail/pass.gpg"))))
+      (setq smtpmail-auth-credentials
+          (list (list "smtp.gmail.com" 587 "narmernbazile@gmail.com" password)))
+      (smtpmail-send-it)))
+
+  (setq message-send-mail-function 'my-smtpmail-send-it-with-gpg)
+  #+end_src
+** calendar configuration 
+#+begin_src emacs-lisp
+  (use-package calfw
+    :ensure t
+    :after org)
+  (use-package calfw-org
+    :ensure t
+    :after calfw
+    :config
+    (setq cfw:org-agenda-views '(("Week" . 7))))
+
+  ;; Load encrypted JSON credentials
+  (defun my/load-org-gcal-creds ()
+    "Decrypt and parse org-gcal JSON credentials. Returns a hash table."
+    (let* ((json-str (shell-command-to-string
+                      "gpg --quiet --for-your-eyes-only --no-tty -d ~/.config/emacs/secrets/org-gcal-credentials.gpg"))
+           (json-object-type 'hash-table)
+           (json-array-type 'list)
+           (json-key-type 'string))
+      (json-read-from-string json-str)))
+
+  ;; Load credentials and set org-gcal variables BEFORE org-gcal is loaded
+  (let* ((creds (my/load-org-gcal-creds))
+         (installed (gethash "installed" creds)))
+    (setq org-gcal-client-id (gethash "client_id" installed)
+          org-gcal-client-secret (gethash "client_secret" installed)
+          org-gcal-file-alist
+          '(("narmernbazile@gmail.com" . "~/org/gcal.org"))))
+
+  ;; Load org-gcal
+  (use-package org-gcal
+    :ensure t
+    :after org)
+    ;; :config
+    ;; Optional: automatic sync every 30 minutes
+    ;;(run-at-time "00:00" (* 30 60) #'org-gcal-sync))
+#+end_src
+** cryptography 
+#+begin_src emacs-lisp
+  (use-package epa
+    :ensure nil
+    :config
+    (setq epa-file-select-keys nil)
+    (setq epa-file-encrypt-to '("narmernbazile@gmail.com"))
+    (setq epg-pinentry-mode 'loopback)
+    (epa-file-enable))
 #+end_src
 * stage 1 
 ** Project and File Management 
@@ -675,18 +747,6 @@ TODO: avy, consult, embark, wgrep?
     :hook ((js-ts-mode . npm-mode)
            (typescript-ts-mode . npm-mode)))
 
-  ;; Auto-formatting via Prettier (locally if available)
-  (use-package apheleia
-    :ensure t
-    :config
-    (add-to-list 'apheleia-formatters
-                 '(prettier-local . ("node_modules/.bin/prettier" "--stdin-filepath" filepath)))
-    (add-to-list 'apheleia-mode-alist
-                 '(js-ts-mode . prettier-local))
-    (add-to-list 'apheleia-mode-alist
-                 '(typescript-ts-mode . prettier-local))
-    (apheleia-global-mode +1))
-
   ;; Add helpful CAPE backends for JS
   ;; (file and dabbrev are already loaded; avoid duplicates)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
@@ -707,6 +767,13 @@ TODO: avy, consult, embark, wgrep?
     ;; Optional: improve shell integration for Cargo commands
     (setq rustic-lsp-client 'eglot))
 #+end_src
+*** Nix
+#+begin_src emacs-lisp
+  (use-package nix-mode
+  :ensure t
+  :mode ("\\.nix\\'" . nix-mode))
+#+end_src
+
 ** Terminal and Shell Integration
 #+begin_src emacs-lisp
   (use-package vterm
@@ -825,10 +892,10 @@ TODO: avy, consult, embark, wgrep?
 #+end_src
 ** citar-org-roam
 #+begin_src emacs-lisp
-  (use-package citar-org-roam
-    :ensure t
-    :custom
-    (citar-org-roam-mode t)
-    (citar-org-roam-subdir "references"))
+;;  (use-package citar-org-roam
+;;    :ensure t
+;;    :custom
+;;    (citar-org-roam-mode t)
+;;   (citar-org-roam-subdir "references"))
 
 #+end_src
