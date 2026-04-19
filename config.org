@@ -1,4 +1,4 @@
-#+TITLE:    NOIRMACS
+#+title:    noirmacs
 #+AUTHOR:   Narmer Noir Bazile
 #+EMAIL:    narmernbazile@gmail.com
 #+LANGUAGE: en
@@ -61,41 +61,6 @@ TODO: avy, consult, embark, wgrep?
 #+end_src
 
 * init
-** Enviroment settings
-#+begin_src emacs-lisp
-  (use-package exec-path-from-shell
-    :ensure t
-    :config
-    (exec-path-from-shell-initialize))
-#+end_src
-** Basic settings
-#+begin_src emacs-lisp
-
-  ;; Keep emacs Custom-settings in separate file.
-  (if (not (file-exists-p (expand-file-name "custom.el" user-emacs-directory)))
-    (with-temp-file (expand-file-name "custom.el" user-emacs-directory)))
-    (setq-default custom-file (expand-file-name "custom.el" user-emacs-directory))
-  (load custom-file)
-
-
-  (setopt initial-major-mode 'fundamental-mode)          ;; default mode for the *scratch* buffer
-  (savehist-mode)                                        ;; save history of minibuffer
-  (windmove-default-keybindings 'control)                ;; Move through windows with Ctrl-<arrow keys>
-  (setopt sentence-end-double-space nil)                 ;; Fix archaic defaults
-  (setq make-backup-files nil)                           ;; Disable backup files
-  (setq backup-directory-alist  '((".*" . "~/.Trash"))) 
-
-  (setq visible-bell t)                                  ;; disable terminal bell
-  (delete-selection-mode 1)                              ;; replace active region by typing
-  (defalias 'yes-or-no-p 'y-or-n-p)                      ;; skip typing out yes or no
-
-  (setq locale-coding-system   'utf-8) ;; set UTF-8 encoding as default
-  (set-terminal-coding-system  'utf-8)
-  (set-keyboard-coding-system  'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system        'utf-8)
-  
-#+end_src
 ** Package settings
 #+begin_src emacs-lisp
   ;; Package setup
@@ -115,6 +80,42 @@ TODO: avy, consult, embark, wgrep?
     (package-refresh-contents)
     (package-install 'use-package))
   (require 'use-package)
+#+end_src
+** Enviroment settings
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize))
+#+end_src
+** Basic settings
+#+begin_src emacs-lisp
+
+  ;; Keep emacs Custom-settings in separate file.
+  (let ((custom-path (expand-file-name "custom.el" user-emacs-directory)))
+    (unless (file-exists-p custom-path)
+      (with-temp-file custom-path))
+    (setq custom-file custom-path)
+    (load custom-file))
+
+
+  (setopt initial-major-mode 'fundamental-mode)          ;; default mode for the *scratch* buffer
+  (savehist-mode)                                        ;; save history of minibuffer
+  (windmove-default-keybindings 'control)                ;; Move through windows with Ctrl-<arrow keys>
+  (setopt sentence-end-double-space nil)                 ;; Fix archaic defaults
+  (setq make-backup-files nil)                           ;; Disable backup files
+  (setq backup-directory-alist  '((".*" . "~/.Trash"))) 
+
+  (setq visible-bell t)                                  ;; disable terminal bell
+  (delete-selection-mode 1)                              ;; replace active region by typing
+  (defalias 'yes-or-no-p 'y-or-n-p)                      ;; skip typing out yes or no
+
+  (setq locale-coding-system   'utf-8) ;; set UTF-8 encoding as default
+  (set-terminal-coding-system  'utf-8)
+  (set-keyboard-coding-system  'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system        'utf-8)
+
 #+end_src
 ** Interface enhancements/defaults
 #+begin_src emacs-lisp
@@ -369,6 +370,7 @@ TODO: avy, consult, embark, wgrep?
     :init
     (setq evil-respect-visual-line-mode t)
     (setq evil-undo-system 'undo-tree)
+    (setq undo-tree-auto-save-history nil)
     (setq evil-want-C-i-jump nil) ;; DONT TOUCH THIS: need to fix broken tab functionality
     ;; Enable this if you want C-u to scroll up, more like pure Vim
     ;(setq evil-want-C-u-scroll t)
@@ -402,14 +404,30 @@ TODO: avy, consult, embark, wgrep?
 ** Org-mode configuration
 *** general
 #+begin_src emacs-lisp
-  (use-package org
-    :ensure t
-    :hook
-    (org-mode . org-indent-mode)
-    (org-mode . flyspell-mode)
-    :config
-    ;; Additional optional configuration for org-mode
-    (setq org-startup-folded 'overview))
+    (defconst noir/ops-directory (expand-file-name "~/ops/")
+      "Root directory for operational Org files.")
+
+    (defconst noir/knw-directory (expand-file-name "~/knw/")
+      "Root directory for knowledge files / Org-roam graph.")
+
+    (use-package org
+      :ensure t
+      :hook
+      (org-mode . org-indent-mode)
+      (org-mode . flyspell-mode)
+      :config
+      (setq org-directory noir/ops-directory)
+      (setq org-startup-folded 'overview)
+      (setq org-agenda-files
+            (list
+             (expand-file-name "inbox" noir/ops-directory)
+             (expand-file-name "agenda" noir/ops-directory)
+             (expand-file-name "planner/weekly" noir/ops-directory)
+             (expand-file-name "projects/active" noir/ops-directory)
+             (expand-file-name "backlog" noir/ops-directory)))
+      (global-set-key (kbd "C-c c") #'org-capture)
+      (global-set-key (kbd "C-c a") #'org-agenda))
+
 #+end_src
 *** org-babel
 #+begin_src emacs-lisp
@@ -425,76 +443,111 @@ TODO: avy, consult, embark, wgrep?
 #+begin_src emacs-lisp
   (use-package org-roam
     :ensure t
+    :demand t
     :custom
-    (org-roam-directory (file-truename "~/org/roam/"))
-    (org-roam-db-location "~/org/roam/org-roam.db")
+    (org-roam-directory noir/knw-directory)
     (org-roam-completion-everywhere t)
     :config
-    (setq org-roam-capture-templates-contexts nil)
-    (setq org-roam-capture-templates-default '("c"))
-    (org-roam-setup)
+    (org-roam-db-autosync-mode)
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert)
-           ("C-c n c" . org-roam-capture)
-  	   ("C-c n b" . narmer/org-roam-capture-from-citar)
-           ("C-c n d" . org-roam-dailies-capture-today)))
+           ("C-c n c" . org-roam-capture)))
 #+end_src
 *** org-roam-ui
 #+begin_src emacs-lisp
-  ;; (use-package org-roam-ui
-  ;;   :ensure t
-  ;;   :after org-roam
-  ;;   :commands org-roam-ui-mode
-  ;;   :hook (after-init . org-roam-ui-mode)
-  ;;   :config
-  ;;   (setq org-roam-ui-sync-theme t
-  ;;         org-roam-ui-follow t
-  ;;         org-roam-ui-update-on-save t
-  ;;         org-roam-ui-open-on-start nil))
+  (use-package org-roam-ui
+    :ensure t
+    :after org-roam
+    :commands (org-roam-ui-mode org-roam-ui-open)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start nil))
+
+  (global-set-key (kbd "C-c n u") #'org-roam-ui-open)
 #+end_src
 *** capture templates
 #+begin_src emacs-lisp
   (setq org-roam-capture-templates
-        '(("c" "Concept Note"
-           plain
-           "%?"
+        '(("c" "Concept" plain
+           "* Definition\n\n%?\n\n* Explanation\n\n* Related\n"
            :target (file+head "concepts/${slug}.org"
-                              "#+TITLE: ${title}\n")
-           :immediate-finish nil
+                              "#+title: ${title}\n#+filetags: :concept:\n")
            :unnarrowed t)
 
-  	("p" "Project Note"
-  	plain
-  	"%?"
-  	:target (file+head "projects/${slug}.org"
-  			    "#+TITLE: ${title}\n")
-  	:unnarrowed t)
-  	;; ("r" "Reference Note" plain "%?"
-          ;;  :target (file+head "references/${citekey}.org"
-          ;;                     "#+TITLE: ${title}\n#+AUTHOR: \n#+CITE: \n#+FILE: \n")
-          ;;  :unnarrowed t)
-  	("l" "Literature Note" plain "%?"
-           :target (file+head "literature/${slug}.org"
-                              "#+TITLE: ${title}\n#+AUTHOR: \n#+CITE: \n#+FILE: \n")
+          ("o" "Topic" plain
+           "* Overview\n\n%?\n\n* Concepts\n\n* Sources\n\n* Open Questions\n"
+           :target (file+head "topics/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :topic:\n")
+           :unnarrowed t)
+
+          ("s" "Source" plain
+           "* Summary\n\n%?\n\n* Key Ideas\n\n* Quotations\n\n* Connections\n\n* Bibliographic Data\n:PROPERTIES:\n:CITEKEY: ${citar-citekey}\n:AUTHOR: ${citar-author}\n:DATE: ${citar-date}\n:TYPE: ${citar-type}\n:PAGES: ${citar-pages}\n:END:\n"
+           :target (file+head "sources/${citar-citekey}.org"
+                              "#+title: ${note-title}\n#+filetags: :source:\n")
+           :unnarrowed t)
+
+          ("e" "Person" plain
+           "* Who\n\n%?\n\n* Works\n\n* Ideas\n\n* Related\n"
+           :target (file+head "people/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :person:\n")
+           :unnarrowed t)
+
+          ("r" "Project Thinking" plain
+           "* Problem\n\n%?\n\n* Design\n\n* Insights\n\n* Related\n"
+           :target (file+head "projects/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :project:\n")
+           :unnarrowed t)
+
+          ("x" "Index" plain
+           "* Overview\n\n%?\n\n* Important Concepts\n\n* Key Sources\n\n* Open Questions\n"
+           :target (file+head "indexes/${slug}.org"
+                              "#+title: ${title}\n#+filetags: :index:\n")
            :unnarrowed t)))
+
+  (setq org-capture-templates
+        `(("i" "Inbox item" entry
+           (file ,(expand-file-name "inbox/capture.org" noir/ops-directory))
+           "* %?\nCaptured: %U\n")
+
+          ("f" "Fleeting note" entry
+           (file ,(expand-file-name "inbox/fleeting.org" noir/ops-directory))
+           "* %?\nCaptured: %U\n")
+
+          ("t" "Task" entry
+           (file ,(expand-file-name "agenda/inbox.org" noir/ops-directory))
+           "* TODO %?\nCaptured: %U\n")
+
+          ("b" "Backlog idea" entry
+           (file ,(expand-file-name "backlog/someday.org" noir/ops-directory))
+           "* %?\nAdded: %U\n")
+
+          ("p" "Project note" entry
+           (file ,(expand-file-name "projects/active/inbox.org" noir/ops-directory))
+           "* %^{Project Title}\n\n** Objective\n%?\n\n** Actions\n- [ ] \n\n** Insights\n- \n\n** Constraints\n- \n\n** Questions\n- \n")))
 #+end_src
 *** attachments setup
 #+begin_src emacs-lisp
-    (setq org-attach-id-dir "~/org/roam/attachments/")
+  (setq org-attach-id-dir (expand-file-name "attachments/" noir/knw-directory))
 
-    (defun narmer/org-attach-setup ()
-      "Ensure new roam notes have ID and attachment dir."
-      (org-id-get-create))
+  (defun narmer/org-attach-setup ()
+    "Ensure new roam notes have ID and attachment dir."
+    (org-id-get-create))
 
-    (add-hook 'org-roam-capture-new-node-hook #'narmer/org-attach-setup)
+  (add-hook 'org-roam-capture-new-node-hook #'narmer/org-attach-setup)
 #+end_src
-*** agenda setup
+*** org-roam hook
 #+begin_src emacs-lisp
-  (setq org-agenda-files '("~/org/roam/inbox.org"
-                           "~/org/roam/daily/"
-                           "~/org/roam/projects/"))
+  (defun narmer/org-roam-ensure-id ()
+  "Ensure every Org-roam file has an ID."
+  (when (and (derived-mode-p 'org-mode)
+             (string-prefix-p (expand-file-name noir/knw-directory)
+                              (or (buffer-file-name) "")))
+    (org-id-get-create)))
 
+(add-hook 'find-file-hook #'narmer/org-roam-ensure-id)
 #+end_src
 ** mu4e configuration
 #+begin_src emacs-lisp
@@ -571,40 +624,40 @@ TODO: avy, consult, embark, wgrep?
   #+end_src
 ** calendar configuration 
 #+begin_src emacs-lisp
-  (use-package calfw
-    :ensure t
-    :after org)
-  (use-package calfw-org
-    :ensure t
-    :after calfw
-    :config
-    (setq cfw:org-agenda-views '(("Week" . 7))))
+  ;; (use-package calfw
+  ;;   :ensure t
+  ;;   :after org)
+  ;; (use-package calfw-org
+  ;;   :ensure t
+  ;;   :after calfw
+  ;;   :config
+  ;;   (setq cfw:org-agenda-views '(("Week" . 7))))
 
-  ;; Load encrypted JSON credentials
-  (defun my/load-org-gcal-creds ()
-    "Decrypt and parse org-gcal JSON credentials. Returns a hash table."
-    (let* ((json-str (shell-command-to-string
-                      "gpg --quiet --for-your-eyes-only --no-tty -d ~/.config/emacs/secrets/org-gcal-credentials.gpg"))
-           (json-object-type 'hash-table)
-           (json-array-type 'list)
-           (json-key-type 'string))
-      (json-read-from-string json-str)))
+  ;; ;; Load encrypted JSON credentials
+  ;; (defun my/load-org-gcal-creds ()
+  ;;   "Decrypt and parse org-gcal JSON credentials. Returns a hash table."
+  ;;   (let* ((json-str (shell-command-to-string
+  ;;                     "gpg --quiet --for-your-eyes-only --no-tty -d ~/.config/emacs/secrets/org-gcal-credentials.gpg"))
+  ;;          (json-object-type 'hash-table)
+  ;;          (json-array-type 'list)
+  ;;          (json-key-type 'string))
+  ;;     (json-read-from-string json-str)))
 
-  ;; Load credentials and set org-gcal variables BEFORE org-gcal is loaded
-  (let* ((creds (my/load-org-gcal-creds))
-         (installed (gethash "installed" creds)))
-    (setq org-gcal-client-id (gethash "client_id" installed)
-          org-gcal-client-secret (gethash "client_secret" installed)
-          org-gcal-file-alist
-          '(("narmernbazile@gmail.com" . "~/org/gcal.org"))))
+  ;; ;; Load credentials and set org-gcal variables BEFORE org-gcal is loaded
+  ;; (let* ((creds (my/load-org-gcal-creds))
+  ;;        (installed (gethash "installed" creds)))
+  ;;   (setq org-gcal-client-id (gethash "client_id" installed)
+  ;;         org-gcal-client-secret (gethash "client_secret" installed)
+  ;;         org-gcal-file-alist
+  ;;         '(("narmernbazile@gmail.com" . "~/org/gcal.org"))))
 
-  ;; Load org-gcal
-  (use-package org-gcal
-    :ensure t
-    :after org)
-    ;; :config
-    ;; Optional: automatic sync every 30 minutes
-    ;;(run-at-time "00:00" (* 30 60) #'org-gcal-sync))
+  ;; ;; Load org-gcal
+  ;; (use-package org-gcal
+  ;;   :ensure t
+  ;;   :after org)
+  ;;   ;; :config
+  ;;   ;; Optional: automatic sync every 30 minutes
+  ;;   ;;(run-at-time "00:00" (* 30 60) #'org-gcal-sync))
 #+end_src
 ** cryptography 
 #+begin_src emacs-lisp
@@ -773,14 +826,63 @@ TODO: avy, consult, embark, wgrep?
   :ensure t
   :mode ("\\.nix\\'" . nix-mode))
 #+end_src
+*** Golang
+#+begin_src emacs-lisp
+  (use-package go-mode
+    :ensure t
+    :mode "\\.go\\'")
 
+  (use-package go-ts-mode
+    :ensure nil
+    :config
+  (setq go-ts-mode-indent-offset 2))
+
+  (when (and (fboundp 'treesit-available-p) (treesit-available-p))
+    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode)))
+
+  (with-eval-after-load 'eglot
+    ;; Ensure eglot knows how to start gopls for Go buffers.
+    ;; Usually automatic, but explicit is robust.
+    (add-to-list 'eglot-server-programs
+                 '((go-mode go-ts-mode) . ("gopls"))))
+
+  (defun narmer/go-before-save ()
+    "Format Go buffers deterministically before saving."
+    ;; If you prefer goimports (imports + formatting), keep gofmt off and use goimports via Apheleia (see below),
+    ;; OR run it here if you prefer. This function is a conservative default.
+    (when (derived-mode-p 'go-mode 'go-ts-mode)
+      (eglot-format-buffer)))
+
+  (use-package eglot
+    :ensure nil
+    :hook ((go-mode . eglot-ensure)
+           (go-ts-mode . eglot-ensure))
+    :config
+    ;; gopls can be chatty; this keeps edits responsive.
+    (setq eglot-send-changes-idle-time 0.3))
+
+  ;; Format on save (via eglot formatting).
+  (add-hook 'before-save-hook #'narmer/go-before-save)
+
+  (defun narmer/go-two-column-tabs ()
+    (setq-local indent-tabs-mode t)
+    (setq-local tab-width 2))
+
+  (add-hook 'go-mode-hook #'narmer/go-two-column-tabs)
+  (add-hook 'go-ts-mode-hook #'narmer/go-two-column-tabs)
+
+  (defun narmer/go-disable-apheleia ()
+    (when (boundp 'apheleia-mode)
+      (apheleia-mode -1)))
+
+  (add-hook 'go-mode-hook #'narmer/go-disable-apheleia)
+  (add-hook 'go-ts-mode-hook #'narmer/go-disable-apheleia)
+#+end_src
 ** Terminal and Shell Integration
 #+begin_src emacs-lisp
   (use-package vterm
     :ensure t
-    :commands vterm
-    :config
-    (setq vterm-shell "/bin/bash"))
+    :commands vterm)
 
   ;; You can bind a shortcut (e.g., C-c t) to open a terminal in the project root. 
 #+end_src
@@ -852,16 +954,30 @@ TODO: avy, consult, embark, wgrep?
 
 #+end_src 
 * stage 2
+** citar-org-roam
+#+begin_src emacs-lisp
+  (use-package citar-org-roam
+    :ensure t
+    :after (citar org-roam)
+    :demand t
+    :custom
+    (citar-org-roam-capture-template-key "s")
+    :config
+    (citar-org-roam-mode)
+    :bind (("C-c n b" . citar-open-notes)))
+
+#+end_src
 ** Citation Management (interop with Zotero)
 #+begin_src emacs-lisp
   (use-package citar
     :ensure t
+    :demand t
     :custom
     ;; the core files for your citation workflow
-    (citar-bibliography '("~/usr/library/library.bib"))
+    (citar-bibliography '("~/lib/library.bib"))
 
     ;; where Citar should search for PDFs
-    (citar-library-paths '("~/usr/library/"))
+    (citar-library-paths '("~/lib/"))
 
     ;; tells Citar how to find local files from Zotero
     (citar-file-open-functions
@@ -878,7 +994,8 @@ TODO: avy, consult, embark, wgrep?
            ("C-c b o" . org-open-at-point)
            ("C-c b c" . citar-insert-citation)
            ("C-c b r" . citar-open-ref)
-           ("C-c b n" . citar-create-note)))
+           ("C-c b n" . citar-open-notes)))
+
 
 #+end_src
 ** Org-cite Integration
@@ -890,12 +1007,44 @@ TODO: avy, consult, embark, wgrep?
           org-cite-follow-processor 'citar
           org-cite-activate-processor 'citar))
 #+end_src
-** citar-org-roam
+* stage 3
+** Nix Integration
 #+begin_src emacs-lisp
-;;  (use-package citar-org-roam
-;;    :ensure t
-;;    :custom
-;;    (citar-org-roam-mode t)
-;;   (citar-org-roam-subdir "references"))
+;; Project-scoped env for GUI Emacs via direnv (recommended for Nix devShells)
 
+(use-package direnv
+  :ensure t
+  :config
+  (direnv-mode))
+
+;; If you use eglot, ensure it discovers tools from the direnv-updated PATH.
+;; Usually automatic once direnv-mode is enabled.
+#+end_src
+** AI enablement
+#+begin_src emacs-lisp
+  (use-package gptel
+  :ensure t
+  :config
+  (setq gptel-backend
+        (gptel-make-openai
+         "ollama"
+         :host "localhost:11434"
+         :protocol "http"
+         :endpoint "/v1/chat/completions"
+         :stream t
+         :models '("mistral" "llama3:8b" "llama2:13b" "codellama")
+         :key nil))
+
+  (add-hook 'gptel-post-response-functions
+            (lambda (beg end)
+              (when 't
+                (goto-char end)
+                (forward-line 4))))
+  (setq gptel-use-curl t)
+  (setq gptel-model 'llama3:8b)
+  (add-to-list 'display-buffer-alist ;; window ergonomics
+        '("\\*ollama\\*"
+  	(display-buffer-in-side-window)
+  	(side . right)
+  	(window-width . 0.4))))
 #+end_src
